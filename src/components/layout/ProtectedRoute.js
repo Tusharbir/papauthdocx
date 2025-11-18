@@ -3,10 +3,8 @@ import { Box, LinearProgress } from '@mui/material';
 import useAuthStore from '../../store/authStore';
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, token } = useAuthStore((state) => ({
-    isAuthenticated: state.isAuthenticated,
-    token: state.token,
-  }));
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const token = useAuthStore((state) => state.token);
   const location = useLocation();
 
   if (!token && !isAuthenticated) {

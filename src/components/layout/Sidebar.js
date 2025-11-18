@@ -27,10 +27,8 @@ const navConfig = [
 
 const Sidebar = () => {
   const location = useLocation();
-  const { sidebarOpen, toggleSidebar } = useUIStore((state) => ({
-    sidebarOpen: state.sidebarOpen,
-    toggleSidebar: state.toggleSidebar,
-  }));
+  const sidebarOpen = useUIStore((state) => state.sidebarOpen);
+  const toggleSidebar = useUIStore((state) => state.toggleSidebar);
   const role = useAuthStore((state) => state.role) || 'admin';
 
   const items = useMemo(

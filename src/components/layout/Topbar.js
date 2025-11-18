@@ -8,16 +8,12 @@ import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 
 const Topbar = () => {
-  const { mode, toggleMode, breadcrumbs } = useUIStore((state) => ({
-    mode: state.mode,
-    toggleMode: state.toggleMode,
-    breadcrumbs: state.breadcrumbs,
-  }));
-  const { user, role, logout } = useAuthStore((state) => ({
-    user: state.user,
-    role: state.role || 'guest',
-    logout: state.logout,
-  }));
+  const mode = useUIStore((state) => state.mode);
+  const toggleMode = useUIStore((state) => state.toggleMode);
+  const breadcrumbs = useUIStore((state) => state.breadcrumbs);
+  const user = useAuthStore((state) => state.user);
+  const role = useAuthStore((state) => state.role || 'guest');
+  const logout = useAuthStore((state) => state.logout);
   const { enqueueSnackbar } = useSnackbar();
 
   const initials = useMemo(() => user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'PX', [user]);
