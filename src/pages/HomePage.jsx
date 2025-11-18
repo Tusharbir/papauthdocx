@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import RegisterVerifyPanel from '../components/RegisterVerifyPanel';
+import Card from '../components/ui/Card';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -75,6 +76,12 @@ const features = [
     text: 'Every document includes a secure QR linking to its verification endpoint.',
     icon: '🔳',
   },
+];
+
+const securityFeatures = [
+  { title: 'Zero-knowledge uploads', text: 'Hashes stay client-side; backend only receives fingerprints.' },
+  { title: 'JWT + RBAC', text: 'Superadmin, admin, verifier scopes enforced on every request.' },
+  { title: 'Audit hash chain', text: 'Every action logs to SQL with immutable linkage to Mongo versions.' },
 ];
 
 function HomePage() {
@@ -208,30 +215,89 @@ function HomePage() {
         <div className="pointer-events-none absolute -bottom-24 right-10">
           <div className="parallax-blob w-64 h-64 rounded-full bg-[radial-gradient(circle_at_bottom,_rgba(129,140,248,0.35),_transparent_60%)]" />
         </div>
-        <div className="max-w-[1800px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-4">Key platform features</h2>
-          <p className="text-lg text-slate-300/85 max-w-4xl mb-14">Designed as an advanced database demonstrator with real-world value.</p>
-          <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-3 relative z-10">
-            {features.map((feature) => (
-              <motion.div
-                key={feature.title}
-                whileHover={{ y: -6, scale: 1.01, boxShadow: '0 24px 80px rgba(15,23,42,0.95)' }}
-                transition={{ type: 'spring', stiffness: 160, damping: 20 }}
-              >
-                <div className="rounded-3xl bg-gradient-to-br from-cyan-500/70 via-blue-500/60 to-violet-500/70 p-[1px] shadow-[0_0_40px_rgba(59,130,246,0.45)]">
-                  <div className="rounded-3xl bg-[#020617]/95 p-6 h-full flex flex-col">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="neon-icon flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-500 text-lg">
-                        <span>{feature.icon}</span>
-                      </div>
-                      <h3 className="text-lg font-semibold">{feature.title}</h3>
-                    </div>
-                    <p className="text-slate-300/85 text-[13px] leading-relaxed flex-1">{feature.text}</p>
-                  </div>
+        <div className="max-w-[1800px] mx-auto space-y-16 relative z-10">
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">How PapDocAuthX+ works</h2>
+            <div className="grid gap-6 md:grid-cols-3 text-sm text-slate-300/85">
+              {[
+                'Client-side hashing extracts text/layout/signature/stamp fingerprints.',
+                'Merkle roots + version chains anchor each update to the audit log.',
+                'Verifiers compare hashes via QR, manual entry, or API checks.',
+              ].map((step, index) => (
+                <div key={step} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <p className="text-xs uppercase tracking-[0.4em] text-blue-300">Step {index + 1}</p>
+                  <p className="mt-2 text-base text-white">{step}</p>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </div>
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">Why multimodal hashing?</h2>
+            <p className="text-lg text-slate-300/85 max-w-4xl mb-10">
+              Screenshots are easy to fake. PapDocAuthX+ produces four independent hashes per document so even subtle tampering is caught.
+            </p>
+            <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
+              {features.map((feature) => (
+                <motion.div
+                  key={feature.title}
+                  whileHover={{ y: -6, scale: 1.01, boxShadow: '0 24px 80px rgba(15,23,42,0.95)' }}
+                  transition={{ type: 'spring', stiffness: 160, damping: 20 }}
+                >
+                  <div className="rounded-3xl bg-gradient-to-br from-cyan-500/70 via-blue-500/60 to-violet-500/70 p-[1px] shadow-[0_0_40px_rgba(59,130,246,0.45)]">
+                    <div className="rounded-3xl bg-[#020617]/95 p-6 h-full flex flex-col">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="neon-icon flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-500 text-lg">
+                          <span>{feature.icon}</span>
+                        </div>
+                        <h3 className="text-lg font-semibold">{feature.title}</h3>
+                      </div>
+                      <p className="text-slate-300/85 text-[13px] leading-relaxed flex-1">{feature.text}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="w-full px-8 lg:px-20 py-24 bg-gradient-to-r from-[#020617] via-[#050b2d] to-[#020617]"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.4 }}
+        variants={fadeUp}
+      >
+        <div className="max-w-[1600px] mx-auto grid gap-12 lg:grid-cols-[1.1fr_0.9fr] items-center">
+          <div>
+            <h2 className="text-3xl font-semibold mb-4">Security features</h2>
+            <p className="text-lg text-slate-300/85 mb-6">
+              Built for regulated orgs—everything from auth to storage respects zero-trust principles and Merkle-verifiable audits.
+            </p>
+            <div className="space-y-4">
+              {securityFeatures.map((item) => (
+                <div key={item.title} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <p className="text-lg font-semibold text-white">{item.title}</p>
+                  <p className="text-sm text-slate-300/80">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Card className="p-6 bg-white/5 border-white/10 text-slate-200">
+            <p className="text-sm uppercase tracking-[0.4em] text-blue-300">Try verification</p>
+            <h3 className="mt-3 text-2xl font-semibold text-white">Have a document ID?</h3>
+            <p className="mt-2 text-sm text-slate-300/80">
+              Run a public check without logging in. Perfect for alumni, HR teams, or agencies validating a credential.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold" to="/verify-public">
+                Verify now
+              </Link>
+              <Link className="px-6 py-2 rounded-full border border-white/20 text-sm" to="/qr/DOC-2024-001">
+                View sample QR
+              </Link>
+            </div>
+          </Card>
         </div>
       </motion.section>
 

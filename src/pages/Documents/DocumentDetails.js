@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Box, Chip, CircularProgress, Grid, Paper, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { QRCodeCanvas } from 'qrcode.react';
 import { motion } from 'framer-motion';
 import { documentApi } from '../../api/documentApi';
-import HashComparison from '../../components/widgets/HashComparison';
-import VersionTimeline from '../../components/widgets/VersionTimeline';
 import useUIStore from '../../store/uiStore';
+import Card from '../../components/ui/Card';
+import PageHeader from '../../components/ui/PageHeader';
+import Badge from '../../components/ui/Badge';
+import Loader from '../../components/ui/Loader';
 
 const DocumentDetails = () => {
   const { documentId = 'DOC-2024-001' } = useParams();
@@ -17,104 +18,95 @@ const DocumentDetails = () => {
     setBreadcrumbs(['PapDocAuthX+', 'Documents', documentId]);
   }, [documentId, setBreadcrumbs]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['document-details', documentId],
     queryFn: () => documentApi.getDetails(documentId),
   });
 
   if (isLoading) {
-    return (
-      <Stack alignItems="center" mt={6}>
-        <CircularProgress />
-      </Stack>
-    );
+    return <Loader label="Fetching document" />;
+  }
+
+  if (error) {
+    return <p className="text-center text-sm text-rose-300">{error.response?.data?.message || 'Unable to load document payload.'}</p>;
   }
 
   if (!data) {
-    return (
-      <Stack alignItems="center" mt={6}>
-        <Typography color="text.secondary">Unable to load document payload.</Typography>
-      </Stack>
-    );
+    return <p className="text-center text-sm text-slate-500">Unable to load document payload.</p>;
   }
 
-  const hashData = [
-    { label: 'Current vs Backend', score: 100, match: true, backendHash: data.hashes.current, providedHash: data.hashes.current },
-    { label: 'Previous Link', score: 82, match: true, backendHash: data.hashes.previous, providedHash: data.hashes.previous },
-    { label: 'Merkle root', score: 64, match: true, backendHash: data.hashes.merkleRoot, providedHash: data.hashes.merkleRoot },
-  ];
+  const hashRows = [
+    { label: 'Current hash', value: data.hashes?.current, tone: 'success' },
+    { label: 'Previous hash', value: data.hashes?.previous, tone: 'info' },
+    { label: 'Merkle root', value: data.hashes?.merkleRoot, tone: 'warning' },
+  ].filter((row) => row.value);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 4, borderRadius: 4, mb: 3 }}>
-            <Stack spacing={2}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Typography variant="h5">{data.name}</Typography>
-                <Chip label={`Versions ${data.metadata.versions}`} />
-              </Stack>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Owner
-                  </Typography>
-                  <Typography>{data.metadata.owner}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Uploaded by
-                  </Typography>
-                  <Typography>{data.metadata.uploadedBy}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Uploaded at
-                  </Typography>
-                  <Typography>{new Date(data.metadata.uploadedAt).toLocaleString()}</Typography>
-                </Box>
-              </Stack>
-            </Stack>
-          </Paper>
-          <HashComparison data={hashData} />
-          <Box mt={3}>
-            <VersionTimeline events={data.versions} />
-          </Box>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 4, borderRadius: 4, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Merkle root visualization
-            </Typography>
-            <Box
-              sx={{
-                height: 180,
-                borderRadius: 3,
-                background: 'radial-gradient(circle, rgba(0,196,180,0.2), transparent)',
-                border: '1px dashed rgba(0,196,180,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textAlign: 'center',
-                px: 2,
-              }}
-            >
-              <Typography variant="body2">{data.hashes.merkleRoot}</Typography>
-            </Box>
-          </Paper>
-          <Paper sx={{ p: 4, borderRadius: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Secure QR identity
-            </Typography>
-            <Stack alignItems="center" spacing={2}>
-              <QRCodeCanvas value={`papdocauthx://${data.id}`} size={180} bgColor="transparent" fgColor="#0066FF" />
-              <Typography variant="body2" color="text.secondary">
-                Document ID: {data.id}
-              </Typography>
-            </Stack>
-          </Paper>
-        </Grid>
-      </Grid>
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      <PageHeader title={data.name} subtitle={`Document ${data.id}`} />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="p-6 lg:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.4em] text-blue-300">Owner</p>
+              <p className="text-lg font-semibold">{data.metadata.owner}</p>
+            </div>
+            <Badge tone="info">{data.metadata.versions} versions</Badge>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-3 text-sm text-slate-300">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Uploaded by</p>
+              <p className="font-semibold text-white">{data.metadata.uploadedBy}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Uploaded at</p>
+              <p>{new Date(data.metadata.uploadedAt).toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Versions</p>
+              <p>{data.metadata.versions ?? '--'}</p>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {hashRows.map((row) => (
+              <div key={row.label} className="rounded-3xl border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{row.label}</p>
+                <p className="mt-2 break-all font-mono text-sm">{row.value}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-6 flex flex-col items-center justify-center text-center">
+          <p className="text-sm text-slate-400">Secure QR identity</p>
+          <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+            <QRCodeCanvas value={`papdocauthx://${data.id}`} size={180} bgColor="transparent" fgColor="#00e0ff" />
+          </div>
+          <p className="mt-4 text-sm text-slate-300">Document ID: {data.id}</p>
+        </Card>
+      </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="p-6 lg:col-span-2">
+          <p className="text-sm text-slate-400">Version timeline</p>
+          <div className="mt-4 space-y-4">
+            {data.versions?.map((version) => (
+              <div key={version.version || version.versionNumber} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                <div>
+                  <p className="font-semibold">{version.version || `v${version.versionNumber}`}</p>
+                  <p className="text-xs text-slate-400">{version.date || (version.timestamp ? new Date(version.timestamp).toLocaleString() : '')}</p>
+                </div>
+                <p className="text-xs text-slate-400">{version.author}</p>
+                <p className="max-w-sm break-all font-mono text-xs text-slate-300">{version.hash}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card className="p-6">
+          <p className="text-sm text-slate-400">Merkle root</p>
+          <div className="mt-4 flex h-48 items-center justify-center rounded-3xl border border-dashed border-emerald-400/40 bg-emerald-500/5 p-4 text-center text-xs text-emerald-200">
+            {data.hashes?.merkleRoot}
+          </div>
+        </Card>
+      </div>
     </motion.div>
   );
 };

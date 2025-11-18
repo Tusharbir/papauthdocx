@@ -1,64 +1,30 @@
 import axiosInstance from './axiosInstance';
 
-const mockUser = {
-  id: 'mock-user-1',
-  name: 'Ava Collins',
-  email: 'ava.collins@papdocauthx.com',
-  role: 'admin',
-};
-
-const safeRequest = async (requestFn, mockData) => {
-  try {
-    const { data } = await requestFn();
-    return data;
-  } catch (error) {
-    console.warn('PapDocAuthX+ auth API fallback', error);
-    return mockData;
-  }
-};
-
 const authApi = {
-  login: (payload) =>
-    safeRequest(
-      () => axiosInstance.post('/auth/login', payload),
+  login: async (payload) => {
+    const { data } = await axiosInstance.post('/api/auth/login', payload);
+    return data;
+  },
+  register: async (payload) => {
+    const { data } = await axiosInstance.post('/api/auth/register', payload);
+    return data;
+  },
+  refresh: async (refreshToken) => {
+    const { data } = await axiosInstance.post(
+      '/api/auth/refresh',
+      { refreshToken },
       {
-        token: `mock-token-${Date.now()}`,
-        refreshToken: `mock-refresh-${Date.now()}`,
-        user: { ...mockUser, email: payload.email, role: payload.email.includes('verify') ? 'verifier' : 'admin' },
+        headers: {
+          'x-skip-auth-refresh': 'true',
+        },
       }
-    ),
-  register: (payload) =>
-    safeRequest(
-      () => axiosInstance.post('/auth/register', payload),
-      {
-        token: `mock-token-${Date.now()}`,
-        refreshToken: `mock-refresh-${Date.now()}`,
-        user: { ...mockUser, ...payload, role: 'user' },
-      }
-    ),
-  refresh: (refreshToken) =>
-    safeRequest(
-      () =>
-        axiosInstance.post(
-          '/auth/refresh',
-          { refreshToken },
-          {
-            headers: {
-              'x-skip-auth-refresh': 'true',
-            },
-          }
-        ),
-      {
-        token: `mock-token-${Date.now()}`,
-        refreshToken: `mock-refresh-${Date.now()}`,
-        user: mockUser,
-      }
-    ),
-  logout: () =>
-    safeRequest(
-      () => axiosInstance.post('/auth/logout'),
-      { success: true }
-    ),
+    );
+    return data;
+  },
+  logout: async () => {
+    const { data } = await axiosInstance.post('/api/auth/logout');
+    return data;
+  },
 };
 
 export default authApi;

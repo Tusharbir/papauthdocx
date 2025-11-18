@@ -6,7 +6,7 @@ const RoleRoute = ({ allowedRoles = [] }) => {
   const role = useAuthStore((state) => state.role);
 
   if (!role) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles.length && !allowedRoles.includes(role)) {

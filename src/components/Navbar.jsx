@@ -32,7 +32,7 @@ const MobileMenu = ({ open, onClose }) => (
             </NavLink>
           ))}
           <Link
-            to="/auth/login"
+            to="/login"
             className="w-full text-center rounded-full py-2 bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold"
             onClick={onClose}
           >
@@ -68,13 +68,13 @@ const Navbar = () => {
         </nav>
         <div className="hidden lg:flex items-center gap-3">
           <Link
-            to="/auth/register"
+            to="/register"
             className="px-4 py-2 rounded-full border border-white/15 text-xs font-semibold text-slate-100 hover:bg-white/10 transition"
           >
             Request access
           </Link>
           <Link
-            to="/auth/login"
+            to="/login"
             className="px-5 py-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-xs font-semibold shadow-lg shadow-blue-500/30"
           >
             Sign in

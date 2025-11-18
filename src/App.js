@@ -1,11 +1,9 @@
 import { useMemo } from 'react';
-import { Box, CssBaseline } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
-import { Routes, Route, useLocation, Outlet } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { SnackbarProvider } from 'notistack';
 import { AnimatePresence } from 'framer-motion';
-import Sidebar from './components/layout/Sidebar';
-import Topbar from './components/layout/Topbar';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleRoute from './components/layout/RoleRoute';
 import LandingPage from './pages/Landing/LandingPage';
@@ -15,7 +13,9 @@ import HomePage from './pages/HomePage';
 import DemoPage from './pages/DemoPage';
 import DocsPage from './pages/DocsPage';
 import NotFound from './pages/NotFound';
-import Dashboard from './pages/Dashboard/Dashboard';
+import SuperAdminDashboard from './pages/Dashboard/SuperAdminDashboard';
+import AdminDashboard from './pages/Dashboard/AdminDashboard';
+import UserDashboard from './pages/Dashboard/UserDashboard';
 import UploadDocument from './pages/Documents/UploadDocument';
 import DocumentDetails from './pages/Documents/DocumentDetails';
 import VerifyDocument from './pages/Verification/VerifyDocument';
@@ -24,41 +24,16 @@ import RevokeDocument from './pages/Revocation/RevokeDocument';
 import GenerateQR from './pages/QR/GenerateQR';
 import ScanQR from './pages/QR/ScanQR';
 import AnalyticsDashboard from './pages/Analytics/AnalyticsDashboard';
+import OrganizationList from './pages/Organizations/OrganizationList';
+import OrganizationAdmins from './pages/Organizations/OrganizationAdmins';
+import DocumentVersions from './pages/Documents/DocumentVersions';
+import RevokeVersion from './pages/Documents/RevokeVersion';
+import AuthLayout from './layouts/AuthLayout';
+import DashboardLayout from './layouts/DashboardLayout';
+import PublicVerifyPage from './pages/Public/PublicVerifyPage';
+import PublicQrPage from './pages/Public/PublicQrPage';
 import useUIStore from './store/uiStore';
 import buildTheme from './theme/muiTheme';
-
-const Shell = ({ children }) => (
-  <Box
-    display="flex"
-    minHeight="100vh"
-    sx={{ bgcolor: (theme) => theme.palette.background.default }}
-  >
-    <Sidebar />
-    <Box flexGrow={1} display="flex" flexDirection="column">
-      <Topbar />
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          overflowY: 'auto',
-          p: { xs: 2.5, md: 4 },
-          background: (theme) =>
-            theme.palette.mode === 'light'
-              ? 'linear-gradient(180deg,#F4F8FB,#E8F0FB)'
-              : 'radial-gradient(circle at top,#111827,#05070C)',
-        }}
-      >
-        {children}
-      </Box>
-    </Box>
-  </Box>
-);
-
-const ShellLayout = () => (
-  <Shell>
-    <Outlet />
-  </Shell>
-);
 
 const App = () => {
   const location = useLocation();
@@ -72,28 +47,36 @@ const App = () => {
         <Route path="/landing" element={<LandingPage />} />
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/docs" element={<DocsPage />} />
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/register" element={<Register />} />
+        <Route path="/verify-public" element={<PublicVerifyPage />} />
+        <Route path="/qr/:docId" element={<PublicQrPage />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+        </Route>
         <Route element={<ProtectedRoute />}>
-          <Route element={<ShellLayout />}>
-            <Route element={<RoleRoute allowedRoles={['admin', 'user']} />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/documents/upload" element={<UploadDocument />} />
-              <Route path="/qr/generate" element={<GenerateQR />} />
-            </Route>
-            <Route element={<RoleRoute allowedRoles={['admin', 'user', 'verifier']} />}>
-              <Route path="/documents/:documentId" element={<DocumentDetails />} />
-              <Route path="/qr/scan" element={<ScanQR />} />
-            </Route>
-            <Route element={<RoleRoute allowedRoles={['admin', 'verifier']} />}>
-              <Route path="/analytics" element={<AnalyticsDashboard />} />
+          <Route element={<DashboardLayout />}>
+            <Route element={<RoleRoute allowedRoles={['superadmin']} />}>
+              <Route path="/dashboard/superadmin" element={<SuperAdminDashboard />} />
+              <Route path="/organizations" element={<OrganizationList />} />
+              <Route path="/organizations/:id/admins" element={<OrganizationAdmins />} />
             </Route>
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
+              <Route path="/dashboard/admin" element={<AdminDashboard />} />
+              <Route path="/documents/upload" element={<UploadDocument />} />
+              <Route path="/documents/:docId/versions" element={<DocumentVersions />} />
+              <Route path="/documents/:docId/revoke/:versionNumber" element={<RevokeVersion />} />
+              <Route path="/documents/:documentId" element={<DocumentDetails />} />
+              <Route path="/qr/generate" element={<GenerateQR />} />
               <Route path="/workflow" element={<StateManager />} />
               <Route path="/revocations" element={<RevokeDocument />} />
             </Route>
+            <Route element={<RoleRoute allowedRoles={['user', 'verifier', 'admin']} />}>
+              <Route path="/dashboard/user" element={<UserDashboard />} />
+              <Route path="/qr/scan" element={<ScanQR />} />
+              <Route path="/analytics" element={<AnalyticsDashboard />} />
+            </Route>
           </Route>
-          <Route element={<RoleRoute allowedRoles={['admin', 'verifier']} />}>
+          <Route element={<RoleRoute allowedRoles={['admin', 'verifier', 'user']} />}>
             <Route path="/verify" element={<VerifyDocument />} />
           </Route>
         </Route>

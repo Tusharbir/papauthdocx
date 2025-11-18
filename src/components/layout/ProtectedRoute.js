@@ -8,7 +8,7 @@ const ProtectedRoute = () => {
   const location = useLocation();
 
   if (!token && !isAuthenticated) {
-    return <Navigate to="/auth/login" replace state={{ from: location }} />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   if (!token && isAuthenticated === undefined) {

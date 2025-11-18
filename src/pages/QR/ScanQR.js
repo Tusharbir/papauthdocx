@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, Dialog, DialogActions, DialogContent, DialogTitle, Button, Paper, Stack, Typography } from '@mui/material';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useMutation } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
@@ -7,6 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { qrApi } from '../../api/qrApi';
 import useUIStore from '../../store/uiStore';
+import Card from '../../components/ui/Card';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
 
 const ScanQR = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -55,37 +57,24 @@ const ScanQR = () => {
   }, [mutation]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
-      <Paper sx={{ p: 4, borderRadius: 4 }}>
-        <Stack spacing={3} alignItems="center">
-          <Typography variant="h5" fontWeight={700}>
-            Scan document QR
-          </Typography>
-          <Box
-            id="qr-reader-container"
-            sx={{
-              width: '100%',
-              maxWidth: 380,
-              borderRadius: 3,
-              overflow: 'hidden',
-              border: '2px solid',
-              borderColor: 'primary.main',
-              boxShadow: '0 15px 30px rgba(0,102,255,0.2)',
-              '& video': { width: '100%' },
-            }}
-          />
-          <Typography color="text.secondary">Auto navigates once a valid code is captured.</Typography>
-        </Stack>
-      </Paper>
-      <Dialog open={Boolean(error)} onClose={() => setError(null)}>
-        <DialogTitle>Invalid QR</DialogTitle>
-        <DialogContent>
-          <Typography>{error}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setError(null)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
+      <Card className="p-8">
+        <h1 className="text-2xl font-semibold text-white">Scan document QR</h1>
+        <p className="mt-2 text-sm text-slate-400">Align the QR code within the frame. We&apos;ll auto-navigate once resolved.</p>
+        <div
+          id="qr-reader-container"
+          className="mt-6 w-full max-w-md rounded-3xl border-2 border-blue-500/60 bg-black/40 p-2 shadow-[0_20px_40px_rgba(59,130,246,0.35)]"
+        />
+      </Card>
+      <Modal open={Boolean(error)} onClose={() => setError(null)}>
+        <h3 className="text-lg font-semibold text-white">Invalid QR</h3>
+        <p className="mt-2 text-sm text-slate-300">{error}</p>
+        <div className="mt-4 flex justify-end">
+          <Button variant="secondary" onClick={() => setError(null)}>
+            Close
+          </Button>
+        </div>
+      </Modal>
     </motion.div>
   );
 };

@@ -30,10 +30,10 @@ const LandingPage = () => {
                 Enterprise-grade document authentication with quantum-safe hashing, Merkle visibility, and AI-assisted verification.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Button variant="contained" color="secondary" component={RouterLink} to="/auth/login" size="large">
+                <Button variant="contained" color="secondary" component={RouterLink} to="/login" size="large">
                   Secure Login
                 </Button>
-                <Button variant="outlined" color="inherit" component={RouterLink} to="/auth/register">
+                <Button variant="outlined" color="inherit" component={RouterLink} to="/register">
                   Request access
                 </Button>
               </Stack>

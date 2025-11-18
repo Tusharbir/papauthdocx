@@ -14,15 +14,18 @@ import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 
 const navConfig = [
-  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard', roles: ['admin', 'user'] },
-  { label: 'Upload Documents', icon: <DescriptionOutlinedIcon />, path: '/documents/upload', roles: ['admin', 'user'] },
-  { label: 'Document Details', icon: <DescriptionOutlinedIcon />, path: '/documents/DOC-2024-001', roles: ['admin', 'user', 'verifier'] },
-  { label: 'Verify', icon: <VerifiedOutlinedIcon />, path: '/verify', roles: ['admin', 'verifier'] },
+  { label: 'Super Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/superadmin', roles: ['superadmin'] },
+  { label: 'Organizations', icon: <HubOutlinedIcon />, path: '/organizations', roles: ['superadmin'] },
+  { label: 'Admin Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/admin', roles: ['admin'] },
+  { label: 'Upload Doc', icon: <DescriptionOutlinedIcon />, path: '/documents/upload', roles: ['admin'] },
+  { label: 'Versions', icon: <DescriptionOutlinedIcon />, path: '/documents/DOC-2024-001/versions', roles: ['admin'] },
   { label: 'Workflow', icon: <HubOutlinedIcon />, path: '/workflow', roles: ['admin'] },
   { label: 'Revocations', icon: <BlockOutlinedIcon />, path: '/revocations', roles: ['admin'] },
-  { label: 'QR Generate', icon: <QrCode2OutlinedIcon />, path: '/qr/generate', roles: ['admin', 'user'] },
+  { label: 'User Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/user', roles: ['user', 'verifier', 'admin'] },
+  { label: 'QR Generate', icon: <QrCode2OutlinedIcon />, path: '/qr/generate', roles: ['admin'] },
   { label: 'QR Scan', icon: <QrCode2OutlinedIcon />, path: '/qr/scan', roles: ['admin', 'verifier', 'user'] },
-  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/analytics', roles: ['admin', 'verifier'] },
+  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/analytics', roles: ['admin', 'verifier', 'user'] },
+  { label: 'Verify', icon: <VerifiedOutlinedIcon />, path: '/verify', roles: ['admin', 'verifier', 'user'] },
 ];
 
 const Sidebar = () => {

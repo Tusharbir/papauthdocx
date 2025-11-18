@@ -24,7 +24,14 @@ const Login = () => {
     onSuccess: (data) => {
       setSession({ token: data.token, refreshToken: data.refreshToken, user: data.user });
       enqueueSnackbar('Welcome back. Threat counters synchronized.', { variant: 'success' });
-      navigate('/dashboard');
+      const role = data.user?.role || 'user';
+      const roleRoutes = {
+        superadmin: '/dashboard/superadmin',
+        admin: '/dashboard/admin',
+        verifier: '/dashboard/user',
+        user: '/dashboard/user',
+      };
+      navigate(roleRoutes[role] || '/dashboard/user', { replace: true });
     },
     onError: () => enqueueSnackbar('Unable to authenticate.', { variant: 'error' }),
   });
@@ -74,7 +81,7 @@ const Login = () => {
                   {mutation.isPending ? 'Validating…' : 'Login'}
                 </Button>
               </Stack>
-              <Link component={RouterLink} to="/auth/register" color="primary">
+              <Link component={RouterLink} to="/register" color="primary">
                 Request access
               </Link>
             </Stack>

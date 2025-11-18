@@ -62,7 +62,7 @@ const Register = () => {
                   </Button>
                 </Grid>
               </Grid>
-              <Link component={RouterLink} to="/auth/login" color="primary">
+              <Link component={RouterLink} to="/login" color="primary">
                 Already onboarded? Login
               </Link>
             </Stack>
