@@ -42,10 +42,11 @@ const navConfig = [
   { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/admin/analytics', roles: ['admin'] },
   
   // User/Verifier only
-  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/user', roles: ['user', 'verifier'] },
-  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, path: '/dashboard/user/verify', roles: ['user', 'verifier'] },
-  { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/user/qr/scan', roles: ['user', 'verifier'] },
-  { label: 'History', icon: <HistoryOutlinedIcon />, path: '/dashboard/user/history', roles: ['user', 'verifier'] },
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/user', roles: ['verifier'] },
+  { label: 'Documents', icon: <DescriptionOutlinedIcon />, path: '/dashboard/user/documents', roles: ['verifier'] },
+  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, path: '/dashboard/user/verify', roles: ['verifier'] },
+  { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/user/qr/scan', roles: ['verifier'] },
+  { label: 'History', icon: <HistoryOutlinedIcon />, path: '/dashboard/user/history', roles: ['verifier'] },
 ];
 
 const Sidebar = () => {

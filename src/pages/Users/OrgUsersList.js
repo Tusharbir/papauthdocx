@@ -38,8 +38,8 @@ const OrgUsersList = () => {
 
   const getRoleBadge = (role) => {
     if (role === 'admin') return <Badge tone="warning">Admin</Badge>;
-    if (role === 'user') return <Badge tone="info">User</Badge>;
-    return <Badge tone="default">Verifier</Badge>;
+    if (role === 'verifier') return <Badge tone="info">Verifier</Badge>;
+    return <Badge tone="default">User</Badge>;
   };
 
   return (
@@ -62,7 +62,6 @@ const OrgUsersList = () => {
         >
           <option value="all">All roles</option>
           <option value="admin">Admin</option>
-          <option value="user">User</option>
           <option value="verifier">Verifier</option>
         </select>
       </div>

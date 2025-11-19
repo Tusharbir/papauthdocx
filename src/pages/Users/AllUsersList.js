@@ -47,7 +47,8 @@ const AllUsersList = () => {
   const getRoleBadge = (role) => {
     if (role === 'superadmin') return <Badge tone="error">Superadmin</Badge>;
     if (role === 'admin') return <Badge tone="warning">Admin</Badge>;
-    return <Badge tone="info">User</Badge>;
+    if (role === 'verifier') return <Badge tone="info">Verifier</Badge>;
+    return <Badge tone="default">User</Badge>;
   };
 
   return (
@@ -70,7 +71,6 @@ const AllUsersList = () => {
         >
           <option value="all">All roles</option>
           <option value="admin">Admin</option>
-          <option value="user">User</option>
           <option value="verifier">Verifier</option>
         </select>
         <select

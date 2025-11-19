@@ -19,6 +19,7 @@ import UserDashboard from './pages/Dashboard/UserDashboard';
 import UploadDocument from './pages/Documents/UploadDocument';
 import DocumentsList from './pages/Documents/DocumentsList';
 import DocumentDetails from './pages/Documents/DocumentDetails';
+import VerifierDocumentsList from './pages/Documents/VerifierDocumentsList';
 import VerifyDocument from './pages/Verification/VerifyDocument';
 import StateManager from './pages/Workflow/StateManager';
 import RevokeDocument from './pages/Revocation/RevokeDocument';
@@ -89,6 +90,7 @@ const App = () => {
             {/* User/Verifier Routes */}
             <Route element={<RoleRoute allowedRoles={['user', 'verifier']} />}>
               <Route path="/dashboard/user" element={<UserDashboard />} />
+              <Route path="/dashboard/user/documents" element={<VerifierDocumentsList />} />
               <Route path="/dashboard/user/verify" element={<VerifyDocument />} />
               <Route path="/dashboard/user/history" element={<AnalyticsDashboard />} />
               <Route path="/dashboard/user/qr/scan" element={<ScanQR />} />

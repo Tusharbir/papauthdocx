@@ -310,7 +310,7 @@ function HomePage() {
               Run a public check without logging in. Perfect for alumni, HR teams, or agencies validating a credential.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold" to="/verify-public">
+              <Link className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold" to="/verify">
                 Verify now
               </Link>
               <Link className="px-6 py-2 rounded-full border border-white/20 text-sm" to="/qr/DOC-2024-001">
