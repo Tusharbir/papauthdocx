@@ -68,7 +68,7 @@ const Navbar = () => {
         </nav>
         <div className="hidden lg:flex items-center gap-3">
           <Link
-            to="/register"
+            to="/contact"
             className="px-4 py-2 rounded-full border border-white/15 text-xs font-semibold text-slate-100 hover:bg-white/10 transition"
           >
             Request access

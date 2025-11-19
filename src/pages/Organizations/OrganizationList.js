@@ -74,7 +74,7 @@ const OrganizationList = () => {
                 <Badge tone="info">{org.type}</Badge>
               </div>
               <div className="mt-4 flex gap-2">
-                <Button className="flex-1" variant="secondary" onClick={() => window.location.assign(`/organizations/${org.id}/admins`)}>
+                <Button className="flex-1" variant="secondary" onClick={() => window.location.assign(`/dashboard/superadmin/organizations/${org.id}/admins`)}>
                   Manage admins
                 </Button>
                 <Button className="flex-1" variant="ghost" onClick={() => setDetail(org)}>
@@ -129,7 +129,7 @@ const OrganizationList = () => {
                 <span className="text-slate-500">Org ID:</span> {detail.id}
               </p>
             </div>
-            <Button className="w-full" onClick={() => window.location.assign(`/organizations/${detail.id}/admins`)}>
+            <Button className="w-full" onClick={() => window.location.assign(`/dashboard/superadmin/organizations/${detail.id}/admins`)}>
               View admins
             </Button>
           </div>

@@ -61,7 +61,7 @@ const RegisterVerifyPanel = () => (
             to="/documents/upload"
             className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 text-white text-sm font-medium"
           >
-            Upload document
+            Register document
             <span className="text-emerald-300">→</span>
           </Link>
           <Link
@@ -80,7 +80,7 @@ const RegisterVerifyPanel = () => (
           </Link>
         </div>
         <p className="text-[12px] text-slate-400 mt-6">
-          Need credentials? Use the demo login seeded in the README or mint a mock verifier from the Register screen.
+          For institutional access, <Link to="/contact" className="text-emerald-400 underline">request access</Link> to onboard your organization.
         </p>
       </div>
     </div>

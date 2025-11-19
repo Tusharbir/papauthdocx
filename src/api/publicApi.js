@@ -1,8 +1,15 @@
 import axiosInstance from './axiosInstance';
 
 export const publicApi = {
-  verify: async ({ docId, versionHash }) => {
-    const { data } = await axiosInstance.get('/api/public/verify', { params: { docId, versionHash } });
+  verify: async ({ docId, versionHash, textHash, imageHash, signatureHash, stampHash }) => {
+    const { data } = await axiosInstance.post('/api/public/verify', { 
+      docId, 
+      versionHash, 
+      textHash, 
+      imageHash, 
+      signatureHash, 
+      stampHash 
+    });
     return data;
   },
   fetchQr: async (docId) => {

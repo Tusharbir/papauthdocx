@@ -1,13 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import PageHeader from '../../components/ui/PageHeader';
-import UploadDocumentForm from '../../components/admin/UploadDocumentForm';
+import PDFUploadForm from '../../components/admin/PDFUploadForm';
+import ImageUploadForm from '../../components/admin/ImageUploadForm';
+import TextUploadForm from '../../components/admin/TextUploadForm';
+import Card from '../../components/ui/Card';
 import useUIStore from '../../store/uiStore';
 import { documentApi } from '../../api/documentApi';
 
 const UploadDocument = () => {
+  const [activeTab, setActiveTab] = useState('pdf'); // pdf, image, text
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
+  const mode = useUIStore((state) => state.mode);
   const { enqueueSnackbar } = useSnackbar();
   const queryClient = useQueryClient();
 
@@ -18,10 +23,13 @@ const UploadDocument = () => {
   const mutation = useMutation({
     mutationFn: documentApi.uploadVersion,
     onSuccess: () => {
-      enqueueSnackbar('Document version uploaded.', { variant: 'success' });
+      enqueueSnackbar('Document registered successfully!', { variant: 'success' });
       queryClient.invalidateQueries({ queryKey: ['documents'] });
     },
-    onError: () => enqueueSnackbar('Upload failed.', { variant: 'error' }),
+    onError: (error) => {
+      const errorMsg = error?.response?.data?.message || 'Upload failed';
+      enqueueSnackbar(errorMsg, { variant: 'error' });
+    },
   });
 
   const handleSubmit = (values) => {
@@ -29,20 +37,81 @@ const UploadDocument = () => {
       documentId: values.docId,
       type: values.type,
       metadata: {
-        fileType: values.fileType,
-        pageCount: values.pageCount ? Number(values.pageCount) : undefined,
-        sizeInKB: values.sizeInKB ? Number(values.sizeInKB) : undefined,
-        mimeType: values.mimeType,
+        holderName: values.holderName,
+        degreeTitle: values.degreeTitle,
+        issueDate: values.issueDate,
+        institution: values.institution
       },
-      hashes: values.hashes,
+      hashes: {
+        textHash: values.textHash,
+        imageHash: values.imageHash,
+        signatureHash: values.signatureHash,
+        stampHash: values.stampHash,
+        merkleRoot: values.merkleRoot
+      }
     };
     mutation.mutate(payload);
   };
 
+  const tabs = [
+    { id: 'pdf', label: '📄 PDF Documents', icon: '📄' },
+    { id: 'image', label: '📷 Scanned Images', icon: '📷' },
+    { id: 'text', label: '📝 Text Files', icon: '📝' }
+  ];
+
+  const tabClass = (tabId) => {
+    const isActive = activeTab === tabId;
+    const baseClass = 'px-6 py-3 font-medium rounded-lg transition-all';
+    
+    if (mode === 'dark') {
+      return `${baseClass} ${
+        isActive 
+          ? 'bg-blue-600 text-white' 
+          : 'bg-white/5 text-white/60 hover:bg-white/10 hover:text-white'
+      }`;
+    } else {
+      return `${baseClass} ${
+        isActive 
+          ? 'bg-blue-600 text-white' 
+          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+      }`;
+    }
+  };
+
   return (
     <div>
-      <PageHeader title="Upload document version" subtitle="Register metadata + multi-modal hashes" />
-      <UploadDocumentForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+      <PageHeader 
+        title="Upload Document" 
+        subtitle="Register cryptographic hashes from different document types - No documents leave your device!"
+      />
+      
+      {/* Tab Navigation */}
+      <Card className="mb-6">
+        <div className="flex gap-3">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={tabClass(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      {/* Tab Content */}
+      <div>
+        {activeTab === 'pdf' && (
+          <PDFUploadForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+        )}
+        {activeTab === 'image' && (
+          <ImageUploadForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+        )}
+        {activeTab === 'text' && (
+          <TextUploadForm onSubmit={handleSubmit} isSubmitting={mutation.isPending} />
+        )}
+      </div>
     </div>
   );
 };

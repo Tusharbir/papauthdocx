@@ -16,7 +16,7 @@ const OrganizationAdmins = () => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [roleFilter, setRoleFilter] = useState('all');
-  const [form, setForm] = useState({ name: '', email: '', role: 'issuer-admin' });
+  const [form, setForm] = useState({ fullName: '', email: '', password: '' });
 
   const { data: admins = [] } = useQuery({ queryKey: ['org-admins', id], queryFn: () => organizationApi.listAdmins(id) });
 
@@ -26,11 +26,11 @@ const OrganizationAdmins = () => {
       enqueueSnackbar('Admin invited.', { variant: 'success' });
       queryClient.invalidateQueries({ queryKey: ['org-admins', id] });
       setOpen(false);
-      setForm({ name: '', email: '', role: 'issuer-admin' });
+      setForm({ fullName: '', email: '', password: '' });
     },
   });
 
-  const filtered = admins.filter((admin) => (roleFilter === 'all' ? true : admin.role === roleFilter));
+  const filtered = roleFilter === 'all' ? admins : admins.filter((admin) => admin.role === roleFilter);
 
   return (
     <div>
@@ -49,10 +49,10 @@ const OrganizationAdmins = () => {
       <div className="grid gap-4 md:grid-cols-2">
         {filtered.map((admin) => (
           <Card key={admin.id} className="p-6">
-            <p className="text-lg font-semibold">{admin.name}</p>
+            <p className="text-lg font-semibold">{admin.fullName || admin.name}</p>
             <p className="text-sm text-slate-400">{admin.email}</p>
             <div className="mt-3 flex items-center justify-between">
-              <Badge tone="info">{admin.role}</Badge>
+              <Badge tone="info">{admin.roleName || 'Admin'}</Badge>
               <Button variant="ghost" className="text-sm" onClick={() => setSelected(admin)}>
                 Details
               </Button>
@@ -65,38 +65,41 @@ const OrganizationAdmins = () => {
         <form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); mutation.mutate(form); }}>
           <input
             className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-            placeholder="Name"
-            value={form.name}
-            onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+            placeholder="Full Name"
+            value={form.fullName}
+            onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
+            required
           />
           <input
             className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
             placeholder="Email"
+            type="email"
             value={form.email}
             onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
+            required
           />
-          <select
+          <input
             className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-            value={form.role}
-            onChange={(e) => setForm((prev) => ({ ...prev, role: e.target.value }))}
-          >
-            <option value="issuer-admin">Issuer Admin</option>
-            <option value="compliance">Compliance</option>
-          </select>
+            placeholder="Password"
+            type="password"
+            value={form.password}
+            onChange={(e) => setForm((prev) => ({ ...prev, password: e.target.value }))}
+            required
+          />
           <Button type="submit" className="w-full" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Creating…' : 'Invite admin'}
+            {mutation.isPending ? 'Creating…' : 'Create admin'}
           </Button>
         </form>
       </Modal>
       <Modal open={Boolean(selected)} onClose={() => setSelected(null)}>
         {selected && (
           <div className="space-y-3 text-sm text-slate-300">
-            <h3 className="text-lg font-semibold text-white">{selected.name}</h3>
+            <h3 className="text-lg font-semibold text-white">{selected.fullName || selected.name}</h3>
             <p>
               <span className="text-slate-500">Email:</span> {selected.email}
             </p>
             <p>
-              <span className="text-slate-500">Role:</span> {selected.role}
+              <span className="text-slate-500">Role:</span> {selected.roleName || selected.role || 'Admin'}
             </p>
             <p>
               <span className="text-slate-500">Admin ID:</span> {selected.id}

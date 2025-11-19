@@ -16,7 +16,7 @@ const Topbar = () => {
   const logout = useAuthStore((state) => state.logout);
   const { enqueueSnackbar } = useSnackbar();
 
-  const initials = useMemo(() => user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'PX', [user]);
+  const initials = useMemo(() => user?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'PX', [user]);
 
   const handleLogout = () => {
     logout();
@@ -61,7 +61,7 @@ const Topbar = () => {
           <Stack direction="row" spacing={1} alignItems="center">
             <Avatar sx={{ bgcolor: 'primary.main', color: 'white' }}>{initials}</Avatar>
             <Stack>
-              <Typography variant="subtitle2">{user?.name || 'PapDoc User'}</Typography>
+              <Typography variant="subtitle2">{user?.fullName || 'PapDoc User'}</Typography>
               <Chip size="small" label={role?.toUpperCase()} color="primary" variant="outlined" sx={{ borderRadius: 2 }} />
             </Stack>
           </Stack>

@@ -8,7 +8,7 @@ import useUIStore from '../../store/uiStore';
 import { extractAllHashes, renderPDFToCanvas } from '../../utils/hashExtraction';
 import ROISelector from './ROISelector';
 
-const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
+const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
   const [file, setFile] = useState(null);
   const [hashes, setHashes] = useState(null);
   const [processing, setProcessing] = useState(false);
@@ -104,7 +104,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
     e.preventDefault();
     
     if (!hashes || !file) {
-      setError('Please upload a PDF document first');
+      setError('Please select a PDF document first and complete hash extraction');
       return;
     }
 
@@ -139,7 +139,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
       <form className="space-y-6" onSubmit={handleSubmit}>
         {/* File Upload Dropzone */}
         <Card className="p-8">
-        <h3 className="text-lg font-semibold mb-4">1. Upload Document</h3>
+        <h3 className="text-lg font-semibold mb-4">1. Select Document for Hash Extraction</h3>
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer ${
@@ -325,7 +325,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
       {/* Submit Button */}
       {hashes && (
         <Button type="submit" className="w-full" disabled={isSubmitting || !hashes}>
-          {isSubmitting ? 'Uploading to blockchain...' : '🔐 Upload Document Version'}
+          {isSubmitting ? 'Registering Hashes...' : '🔐 Register Document Hashes'}
         </Button>
       )}
     </form>
@@ -352,4 +352,5 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
   );
 };
 
-export default UploadDocumentForm;
+export default PDFUploadForm;
+

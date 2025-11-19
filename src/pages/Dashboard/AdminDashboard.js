@@ -44,7 +44,7 @@ const AdminDashboard = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <PageHeader title="Issuer admin cockpit" subtitle={`Welcome, ${user?.name || 'operator'}`} />
+      <PageHeader title="Issuer admin cockpit" subtitle={`Welcome, ${user?.fullName || 'operator'}`} />
       {error && <p className="text-sm text-rose-300">{error.response?.data?.message || 'Unable to load documents.'}</p>}
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat) => (

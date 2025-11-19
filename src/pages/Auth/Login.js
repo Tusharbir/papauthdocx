@@ -81,7 +81,7 @@ const Login = () => {
                   {mutation.isPending ? 'Validating…' : 'Login'}
                 </Button>
               </Stack>
-              <Link component={RouterLink} to="/register" color="primary">
+              <Link component={RouterLink} to="/contact" color="primary">
                 Request access
               </Link>
             </Stack>

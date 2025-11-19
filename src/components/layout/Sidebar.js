@@ -10,22 +10,38 @@ import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined';
 import QrCode2OutlinedIcon from '@mui/icons-material/QrCode2Outlined';
 import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
 import MenuOpenRoundedIcon from '@mui/icons-material/MenuOpenRounded';
+import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
+import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 
+const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX+';
+const APP_SHORT_NAME = process.env.REACT_APP_SHORT_NAME || 'PDX+';
+
 const navConfig = [
-  { label: 'Super Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/superadmin', roles: ['superadmin'] },
-  { label: 'Organizations', icon: <HubOutlinedIcon />, path: '/organizations', roles: ['superadmin'] },
-  { label: 'Admin Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/admin', roles: ['admin'] },
-  { label: 'Upload Doc', icon: <DescriptionOutlinedIcon />, path: '/documents/upload', roles: ['admin'] },
-  { label: 'Versions', icon: <DescriptionOutlinedIcon />, path: '/documents/DOC-2024-001/versions', roles: ['admin'] },
-  { label: 'Workflow', icon: <HubOutlinedIcon />, path: '/workflow', roles: ['admin'] },
-  { label: 'Revocations', icon: <BlockOutlinedIcon />, path: '/revocations', roles: ['admin'] },
-  { label: 'User Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/user', roles: ['user', 'verifier', 'admin'] },
-  { label: 'QR Generate', icon: <QrCode2OutlinedIcon />, path: '/qr/generate', roles: ['admin'] },
-  { label: 'QR Scan', icon: <QrCode2OutlinedIcon />, path: '/qr/scan', roles: ['admin', 'verifier', 'user'] },
-  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/analytics', roles: ['admin', 'verifier', 'user'] },
-  { label: 'Verify', icon: <VerifiedOutlinedIcon />, path: '/verify', roles: ['admin', 'verifier', 'user'] },
+  // Superadmin only (exclusive features)
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/superadmin', roles: ['superadmin'] },
+  { label: 'Organizations', icon: <BusinessOutlinedIcon />, path: '/dashboard/superadmin/organizations', roles: ['superadmin'] },
+  { label: 'All Users', icon: <PeopleOutlinedIcon />, path: '/dashboard/superadmin/users', roles: ['superadmin'] },
+  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/superadmin/analytics', roles: ['superadmin'] },
+  
+  // Admin features (also available to superadmin)
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/admin', roles: ['admin'] },
+  { label: 'Upload Document', icon: <UploadFileOutlinedIcon />, path: '/dashboard/admin/upload', roles: ['admin', 'superadmin'] },
+  { label: 'Documents', icon: <DescriptionOutlinedIcon />, path: '/dashboard/admin/documents', roles: ['admin', 'superadmin'] },
+  { label: 'Generate QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/admin/qr/generate', roles: ['admin', 'superadmin'] },
+  { label: 'Workflow', icon: <HubOutlinedIcon />, path: '/dashboard/admin/workflow', roles: ['admin', 'superadmin'] },
+  { label: 'Revocations', icon: <BlockOutlinedIcon />, path: '/dashboard/admin/revocations', roles: ['admin', 'superadmin'] },
+  { label: 'Org Users', icon: <PeopleOutlinedIcon />, path: '/dashboard/admin/users', roles: ['admin'] },
+  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/admin/analytics', roles: ['admin'] },
+  
+  // User/Verifier only
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/user', roles: ['user', 'verifier'] },
+  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, path: '/dashboard/user/verify', roles: ['user', 'verifier'] },
+  { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/user/qr/scan', roles: ['user', 'verifier'] },
+  { label: 'History', icon: <HistoryOutlinedIcon />, path: '/dashboard/user/history', roles: ['user', 'verifier'] },
 ];
 
 const Sidebar = () => {
@@ -57,7 +73,7 @@ const Sidebar = () => {
     >
       <Box display="flex" alignItems="center" justifyContent="space-between" px={2} py={3}>
         <Typography variant="h6" color="white" fontWeight={700} sx={{ letterSpacing: 1 }}>
-          {sidebarOpen ? 'PapDocAuthX+' : 'PDX+'}
+          {sidebarOpen ? APP_NAME : APP_SHORT_NAME}
         </Typography>
         <IconButton size="small" onClick={toggleSidebar} sx={{ color: 'white' }}>
           <MenuOpenRoundedIcon />
