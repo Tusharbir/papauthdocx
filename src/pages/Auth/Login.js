@@ -16,7 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Auth', 'Login']);
+    setBreadcrumbs(['PapDocAuthX', 'Auth', 'Login']);
   }, [setBreadcrumbs]);
 
   const mutation = useMutation({
@@ -58,7 +58,7 @@ const Login = () => {
                 <Typography variant="h4" fontWeight={700} gutterBottom>
                   Secure Login
                 </Typography>
-                <Typography color="text.secondary">Authenticate to access PapDocAuthX+ control plane.</Typography>
+                <Typography color="text.secondary">Authenticate to access PapDocAuthX control plane.</Typography>
               </div>
               <Stack component="form" spacing={3} onSubmit={handleSubmit}>
                 <TextField

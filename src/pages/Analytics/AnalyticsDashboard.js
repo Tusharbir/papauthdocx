@@ -38,7 +38,7 @@ const AnalyticsDashboard = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Analytics']);
+    setBreadcrumbs(['PapDocAuthX', 'Analytics']);
   }, [setBreadcrumbs]);
 
   return (

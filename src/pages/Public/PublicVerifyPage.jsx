@@ -19,7 +19,7 @@ const statusTone = {
 };
 
 const statusDescriptions = {
-  APPROVED: 'All hashes match the PapDocAuthX+ ledger. Document is authentic.',
+  APPROVED: 'All hashes match the PapDocAuthX ledger. Document is authentic.',
   REVOKED: 'This version was revoked. Contact the issuer for the latest copy.',
   'NOT FOUND': 'No record exists for the provided ID/hash combination.',
 };
@@ -107,7 +107,7 @@ const PublicVerifyPage = () => {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-sm uppercase tracking-[0.4em] text-blue-400">Public Verification</p>
           <h1 className="mt-2 text-4xl font-semibold">Check a document&apos;s cryptographic status</h1>
-          <p className="mt-3 text-slate-300/80">Provide the Document ID and version hash to verify across the PapDocAuthX+ trust fabric.</p>
+          <p className="mt-3 text-slate-300/80">Provide the Document ID and version hash to verify across the PapDocAuthX trust fabric.</p>
           
           {/* Mode Toggle */}
           <div className="mt-6 flex gap-3">

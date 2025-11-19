@@ -18,7 +18,7 @@ import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 
-const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX+';
+const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX';
 const APP_SHORT_NAME = process.env.REACT_APP_SHORT_NAME || 'PDX+';
 
 const navConfig = [

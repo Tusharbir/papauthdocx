@@ -16,7 +16,7 @@ const UserDashboard = () => (
         <p className="text-sm uppercase tracking-[0.4em] text-blue-300">Manual crypto-check</p>
         <h3 className="mt-3 text-2xl font-semibold">Deep hash comparison</h3>
         <p className="mt-2 text-sm text-slate-300/80">
-          Enter multimodal hashes (text/image/signature/stamp) to compare against PapDocAuthX+ backend.
+          Enter multimodal hashes (text/image/signature/stamp) to compare against PapDocAuthX backend.
         </p>
         <ul className="mt-4 space-y-2 text-xs text-slate-400">
           {checklist.map((item) => (

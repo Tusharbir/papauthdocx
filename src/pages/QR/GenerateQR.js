@@ -14,7 +14,7 @@ const GenerateQR = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'QR', 'Generate']);
+    setBreadcrumbs(['PapDocAuthX', 'QR', 'Generate']);
   }, [setBreadcrumbs]);
 
   const mutation = useMutation({

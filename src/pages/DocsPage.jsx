@@ -127,7 +127,7 @@ const DocsPage = () => {
       <main className="max-w-[1200px] mx-auto px-6 py-16 space-y-10">
         <header>
           <p className="text-xs uppercase tracking-[0.4em] text-blue-300 mb-3">Documentation</p>
-          <h1 className="text-4xl font-semibold mb-4">PapDocAuthX+ Documentation</h1>
+          <h1 className="text-4xl font-semibold mb-4">PapDocAuthX Documentation</h1>
           <p className="text-slate-300/90 max-w-3xl">
             Complete guide covering user instructions, technical implementation, security, and API reference.
           </p>

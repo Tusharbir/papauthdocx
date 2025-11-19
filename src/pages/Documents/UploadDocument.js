@@ -17,7 +17,7 @@ const UploadDocument = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Documents', 'Upload']);
+    setBreadcrumbs(['PapDocAuthX', 'Documents', 'Upload']);
   }, [setBreadcrumbs]);
 
   const mutation = useMutation({

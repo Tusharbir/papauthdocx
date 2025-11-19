@@ -13,7 +13,7 @@ const RevokeDocument = () => {
   const [form, setForm] = useState({ documentId: '', version: '', reason: '' });
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Revocation']);
+    setBreadcrumbs(['PapDocAuthX', 'Revocation']);
   }, [setBreadcrumbs]);
 
   const { data: documents = [] } = useQuery({

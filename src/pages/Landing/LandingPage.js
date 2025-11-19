@@ -8,7 +8,7 @@ const LandingPage = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Landing']);
+    setBreadcrumbs(['PapDocAuthX', 'Landing']);
   }, [setBreadcrumbs]);
 
   return (
@@ -24,7 +24,7 @@ const LandingPage = () => {
           <Grid item xs={12} md={6}>
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
               <Typography variant="h2" fontWeight={700} gutterBottom>
-                PapDocAuthX+
+                PapDocAuthX
               </Typography>
               <Typography variant="h5" color="rgba(255,255,255,0.8)" mb={4}>
                 Enterprise-grade document authentication with quantum-safe hashing, Merkle visibility, and AI-assisted verification.

@@ -13,7 +13,7 @@ const AdminDashboard = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
   const user = useAuthStore((state) => state.user);
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Admin Dashboard']);
+    setBreadcrumbs(['PapDocAuthX', 'Admin Dashboard']);
   }, [setBreadcrumbs]);
 
   const { data: documents = [], error } = useQuery({

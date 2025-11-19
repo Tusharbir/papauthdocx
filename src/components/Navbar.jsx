@@ -51,7 +51,7 @@ const Navbar = () => {
       <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-semibold text-lg tracking-tight">
           <span className="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-          PapDocAuthX+
+          PapDocAuthX
         </Link>
         <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-200">
           {navItems.map((item) => (

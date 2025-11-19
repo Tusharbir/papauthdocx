@@ -16,14 +16,14 @@ const Register = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Auth', 'Register']);
+    setBreadcrumbs(['PapDocAuthX', 'Auth', 'Register']);
   }, [setBreadcrumbs]);
 
   const mutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: (data) => {
       setSession({ token: data.token, refreshToken: data.refreshToken, user: data.user });
-      enqueueSnackbar('Provisioning completed. Welcome to PapDocAuthX+. ', { variant: 'success' });
+      enqueueSnackbar('Provisioning completed. Welcome to PapDocAuthX. ', { variant: 'success' });
       navigate('/dashboard');
     },
     onError: () => enqueueSnackbar('Registration failed.', { variant: 'error' }),

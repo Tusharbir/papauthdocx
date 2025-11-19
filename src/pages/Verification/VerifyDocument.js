@@ -228,7 +228,7 @@ const VerifyDocument = () => {
         <div>
           <p className="text-sm uppercase tracking-[0.4em] text-blue-400">Document Verification</p>
           <h1 className="mt-2 text-4xl font-semibold">Verify document authenticity</h1>
-          <p className="mt-2 text-slate-300/80">Run multi-modal cryptographic comparisons across PapDocAuthX+.</p>
+          <p className="mt-2 text-slate-300/80">Run multi-modal cryptographic comparisons across PapDocAuthX.</p>
         </div>
         {isAuthenticated && (
           <div className="rounded-full px-4 py-2 bg-green-500/20 border border-green-400/30 text-green-400 text-xs font-medium">

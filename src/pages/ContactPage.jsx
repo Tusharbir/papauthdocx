@@ -36,7 +36,7 @@ const ContactPage = () => {
                     Request Enterprise Access
                   </Typography>
                   <Typography variant="body1" color="text.secondary">
-                    PapDocAuthX+ is an enterprise-grade document authentication platform. 
+                    PapDocAuthX is an enterprise-grade document authentication platform. 
                     Fill out the form below and our team will contact you to set up your organization.
                   </Typography>
                 </div>

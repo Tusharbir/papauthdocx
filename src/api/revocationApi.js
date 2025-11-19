@@ -5,7 +5,7 @@ const safeRequest = async (requestFn, mockData) => {
     const { data } = await requestFn();
     return data;
   } catch (error) {
-    console.warn('PapDocAuthX+ revocation API fallback', error);
+    console.warn('PapDocAuthX revocation API fallback', error);
     return mockData;
   }
 };

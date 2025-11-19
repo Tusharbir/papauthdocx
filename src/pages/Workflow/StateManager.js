@@ -16,7 +16,7 @@ const StateManager = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Workflow']);
+    setBreadcrumbs(['PapDocAuthX', 'Workflow']);
   }, [setBreadcrumbs]);
 
   const { data: history = [] } = useQuery({

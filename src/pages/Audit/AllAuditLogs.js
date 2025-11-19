@@ -18,7 +18,7 @@ const AllAuditLogs = () => {
   const [limit] = useState(100);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Audit Logs', 'All Logs']);
+    setBreadcrumbs(['PapDocAuthX', 'Audit Logs', 'All Logs']);
   }, [setBreadcrumbs]);
 
   // Fetch all audit logs (superadmin only)

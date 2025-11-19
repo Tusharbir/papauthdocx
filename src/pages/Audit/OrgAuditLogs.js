@@ -18,7 +18,7 @@ const OrgAuditLogs = () => {
   const [limit] = useState(100);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Audit Logs', 'Organization']);
+    setBreadcrumbs(['PapDocAuthX', 'Audit Logs', 'Organization']);
   }, [setBreadcrumbs]);
 
   // Fetch organization audit logs (admin can only see their org)

@@ -9,7 +9,7 @@ const PageHeader = ({ title, subtitle, actions = [], className }) => {
   return (
     <div className={cn('mb-6 flex flex-wrap items-center justify-between gap-4', className)}>
       <div>
-        <p className="text-xs uppercase tracking-[0.4em] text-blue-300">PapDocAuthX+</p>
+        <p className="text-xs uppercase tracking-[0.4em] text-blue-300">PapDocAuthX</p>
         <h1 className={cn('text-3xl font-semibold', titleColor)}>{title}</h1>
         {subtitle && <p className={cn('text-sm', subtitleColor)}>{subtitle}</p>}
       </div>

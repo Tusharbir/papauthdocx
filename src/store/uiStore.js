@@ -10,7 +10,7 @@ const defaultMode = getPreferredMode();
 const useUIStore = create((set) => ({
   sidebarOpen: true,
   mode: defaultMode,
-  breadcrumbs: ['PapDocAuthX+'],
+  breadcrumbs: ['PapDocAuthX'],
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setSidebar: (value) => set({ sidebarOpen: value }),
   toggleMode: () => set((state) => ({ mode: state.mode === 'light' ? 'dark' : 'light' })),

@@ -1,4 +1,4 @@
-# PapDocAuthX+ v2 - Frontend
+# PapDocAuthX - Frontend
 
 ## 🎨 Enterprise Document Verification Web Application
 
@@ -158,7 +158,7 @@
 ### Prerequisites
 - Node.js v18.x or higher
 - npm or yarn
-- PapDocAuthX+ Backend running (port 4000)
+- PapDocAuthX Backend running (port 4000)
 
 ### Install Dependencies
 ```bash
@@ -169,7 +169,7 @@ npm install
 Create `.env` file:
 ```bash
 REACT_APP_API_URL=http://localhost:4000
-REACT_APP_NAME=PapDocAuthX+
+REACT_APP_NAME=PapDocAuthX
 REACT_APP_VERSION=2.0.0
 ```
 
@@ -289,8 +289,8 @@ MIT License - see [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/Tusharbir/papauthdocx/issues)
-- **Email**: lovepreetsinghvirdi001@gmail.com
+- **Contact**: Use the repository Issues page for support (preferred)
 
 ---
 
-**Built with ❤️ by the PapDocAuthX+ Team**
+**Built with ❤️ by the PapDocAuthX Team**

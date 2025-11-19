@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX+';
+const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX';
 const SECURITY_EMAIL = process.env.REACT_APP_SECURITY_EMAIL || 'security@papdocauthx.com';
 const STATUS_URL = process.env.REACT_APP_STATUS_URL || 'https://status.papdocauthx.com';
 const TRUST_URL = process.env.REACT_APP_TRUST_URL || 'https://trust.papdocauthx.com';

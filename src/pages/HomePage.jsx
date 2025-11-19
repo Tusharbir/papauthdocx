@@ -125,7 +125,7 @@ function HomePage() {
               <span className="text-slate-300">Document Authentication System</span>
             </h1>
             <p className="text-lg text-slate-300/90 max-w-2xl mb-10 leading-relaxed">
-              PapDocAuthX+ v2 implements revolutionary client-side cryptographic fingerprinting. Your documents never leave your device—we only store SHA-256 hashes extracted from text, images, signatures, and stamps. Enterprise-grade security for universities, governments, and HR departments worldwide.
+              PapDocAuthX implements revolutionary client-side cryptographic fingerprinting. Your documents never leave your device—we only store SHA-256 hashes extracted from text, images, signatures, and stamps. Enterprise-grade security for universities, governments, and HR departments worldwide.
             </p>
             <div className="flex flex-wrap gap-4 mb-6">
               <Link
@@ -194,7 +194,7 @@ function HomePage() {
         variants={fadeUp}
       >
         <div className="max-w-[1800px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-4">Where PapDocAuthX+ fits in</h2>
+          <h2 className="text-3xl font-semibold mb-4">Where PapDocAuthX fits in</h2>
           <p className="text-slate-300/85 text-lg max-w-4xl mb-12">
             The platform focuses on high-value, frequently forged documents. Perfect for academic projects, research demonstrations, and real-world deployment.
           </p>
@@ -237,7 +237,7 @@ function HomePage() {
         </div>
         <div className="max-w-[1800px] mx-auto space-y-16 relative z-10">
           <div>
-            <h2 className="text-3xl font-semibold mb-4">How PapDocAuthX+ v2 Works</h2>
+            <h2 className="text-3xl font-semibold mb-4">How PapDocAuthX Works</h2>
             <div className="grid gap-6 md:grid-cols-3 text-sm text-slate-300/85">
               {[
                 '1. Client extracts text (PDF.js), rasterizes image (Canvas), computes 4 SHA-256 hashes',
@@ -254,7 +254,7 @@ function HomePage() {
           <div>
             <h2 className="text-3xl font-semibold mb-4">Why 4 Independent Hashes?</h2>
             <p className="text-lg text-slate-300/85 max-w-4xl mb-10">
-              A single hash is easily forged. PapDocAuthX+ v2 requires attackers to simultaneously replicate exact text content, pixel-perfect appearance, authentic signatures, AND institutional stamps—exponentially increasing forgery complexity.
+              A single hash is easily forged. PapDocAuthX requires attackers to simultaneously replicate exact text content, pixel-perfect appearance, authentic signatures, AND institutional stamps—exponentially increasing forgery complexity.
             </p>
             <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
               {features.map((feature) => (

@@ -16,7 +16,7 @@ const DocumentDetails = () => {
   const mode = useUIStore((state) => state.mode);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Documents', docId || 'Details']);
+    setBreadcrumbs(['PapDocAuthX', 'Documents', docId || 'Details']);
   }, [docId, setBreadcrumbs]);
 
   const { data, isLoading, error } = useQuery({

@@ -14,7 +14,7 @@ const DemoPage = () => (
     <main className="max-w-[1400px] mx-auto px-6 py-16 space-y-16">
       <section>
         <p className="text-sm text-blue-300 uppercase tracking-[0.3em] mb-3">Live demo briefing</p>
-        <h1 className="text-4xl font-semibold mb-4">PapDocAuthX+ showcase</h1>
+        <h1 className="text-4xl font-semibold mb-4">PapDocAuthX showcase</h1>
         <p className="text-slate-300/90 max-w-3xl">
           Launch the dashboard, upload sample documents, and present tamper proofing to stakeholders. Every action writes to the audit store so you can narrate database behavior in real time.
         </p>

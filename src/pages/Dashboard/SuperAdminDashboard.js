@@ -19,7 +19,7 @@ const activity = [
 const SuperAdminDashboard = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Superadmin']);
+    setBreadcrumbs(['PapDocAuthX', 'Superadmin']);
   }, [setBreadcrumbs]);
 
   const { data: orgs = [], error: orgError } = useQuery({ queryKey: ['orgs'], queryFn: organizationApi.list });
