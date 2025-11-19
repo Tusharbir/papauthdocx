@@ -36,20 +36,11 @@ const UploadDocument = () => {
     const payload = {
       docId: values.docId,
       type: values.type,
-      metadata: {
-        holderName: values.holderName,
-        degreeTitle: values.degreeTitle,
-        issueDate: values.issueDate,
-        institution: values.institution
-      },
-      hashes: {
-        textHash: values.textHash,
-        imageHash: values.imageHash,
-        signatureHash: values.signatureHash,
-        stampHash: values.stampHash,
-        merkleRoot: values.merkleRoot
-      },
-      // For superadmin: can optionally specify targetOrgId, defaults to -1 (system-wide)\n      // For admin: will use their own orgId automatically\n      targetOrgId: values.targetOrgId || undefined
+      metadata: values.metadata,
+      hashes: values.hashes,
+      // For superadmin: can optionally specify targetOrgId, defaults to -1 (system-wide)
+      // For admin: will use their own orgId automatically
+      targetOrgId: values.targetOrgId || undefined
     };
     mutation.mutate(payload);
   };

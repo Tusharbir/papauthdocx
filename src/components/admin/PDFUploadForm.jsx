@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useQuery } from '@tanstack/react-query';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Loader from '../ui/Loader';
 import Modal from '../ui/Modal';
 import useUIStore from '../../store/uiStore';
 import { extractAllHashes, renderPDFToCanvas } from '../../utils/hashExtraction';
+import { metadataApi } from '../../api/metadataApi';
 import ROISelector from './ROISelector';
 
 const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
@@ -19,12 +21,19 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
   const [stampBox, setStampBox] = useState(null);
   const [metadata, setMetadata] = useState({
     docId: '',
-    type: 'DEGREE_CERTIFICATE',
+    type: 'certificate',
     holderName: '',
     degreeTitle: '',
     issueDate: '',
     institution: ''
   });
+  
+  const { data: documentTypesData } = useQuery({
+    queryKey: ['document-types'],
+    queryFn: metadataApi.getDocumentTypes,
+  });
+
+  const documentTypes = documentTypesData?.documentTypes || [];
   
   const mode = useUIStore((state) => state.mode);
   const inputClass =
@@ -77,12 +86,14 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
     // Re-extract hashes with ROI boxes
     if (file) {
       setProcessing(true);
+      setError(null);
       try {
         const extractedHashes = await extractAllHashes(file, signature, stamp);
         setHashes(extractedHashes);
+        console.log('ROI hashes extracted successfully:', extractedHashes);
       } catch (err) {
         console.error('ROI hash extraction error:', err);
-        setError('Failed to extract signature/stamp hashes');
+        setError(`Failed to extract signature/stamp hashes: ${err.message}`);
       } finally {
         setProcessing(false);
       }
@@ -97,7 +108,16 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
     onDrop,
     accept: { 'application/pdf': ['.pdf'] },
     maxFiles: 1,
-    disabled: processing || isSubmitting
+    maxSize: (parseInt(process.env.REACT_APP_MAX_FILE_SIZE_MB || '5')) * 1024 * 1024,
+    disabled: processing || isSubmitting,
+    onDropRejected: (rejectedFiles) => {
+      const maxSizeMB = process.env.REACT_APP_MAX_FILE_SIZE_MB || '5';
+      if (rejectedFiles[0]?.errors[0]?.code === 'file-too-large') {
+        setError(`File size must be less than ${maxSizeMB}MB`);
+      } else {
+        setError('Invalid file. Please upload a valid PDF document.');
+      }
+    }
   });
 
   const handleSubmit = (e) => {
@@ -180,7 +200,7 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
                   )}
                 </p>
                 <p className="text-sm text-slate-400">
-                  Only PDF files • Zero-document-upload security
+                  Only PDF files • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB • Zero-document-upload security
                 </p>
               </>
             )}
@@ -270,11 +290,11 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
                 value={metadata.type}
                 onChange={(e) => setMetadata(prev => ({ ...prev, type: e.target.value }))}
               >
-                <option value="DEGREE_CERTIFICATE">Degree Certificate</option>
-                <option value="TRANSCRIPT">Transcript</option>
-                <option value="OFFER_LETTER">Offer Letter</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="LICENSE">License</option>
+                {documentTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
               </select>
             </div>
             

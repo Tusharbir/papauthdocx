@@ -1,20 +1,14 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import useUIStore from '../../store/uiStore';
 import { organizationApi } from '../../api/organizationApi';
 import { documentApi } from '../../api/documentApi';
+import analyticsApi from '../../api/analyticsApi';
+import axiosInstance from '../../api/axiosInstance';
 import Card from '../../components/ui/Card';
 import PageHeader from '../../components/ui/PageHeader';
 import Badge from '../../components/ui/Badge';
-
-const activity = [
-  { date: 'Mon', orgs: 2, documents: 38 },
-  { date: 'Tue', orgs: 1, documents: 44 },
-  { date: 'Wed', orgs: 3, documents: 52 },
-  { date: 'Thu', orgs: 1, documents: 48 },
-  { date: 'Fri', orgs: 2, documents: 60 },
-];
 
 const SuperAdminDashboard = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
@@ -24,11 +18,33 @@ const SuperAdminDashboard = () => {
 
   const { data: orgs = [], error: orgError } = useQuery({ queryKey: ['orgs'], queryFn: organizationApi.list });
   const { data: docs = [], error: docError } = useQuery({ queryKey: ['docs'], queryFn: documentApi.listUserDocs });
+  
+  // Fetch real analytics data for superadmin (global stats)
+  const { data: analyticsData, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['analytics-summary'],
+    queryFn: analyticsApi.getSummary
+  });
+
+  // Fetch all users to get accurate admin count
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['all-users'],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get('/api/auth/users');
+      return data.users || [];
+    }
+  });
+
+  // Calculate real stats
+  const adminCount = usersData?.filter(u => u.role === 'admin').length || 0;
+  const totalDocuments = analyticsData?.totalDocuments || docs.length;
+  
+  // Transform throughput data for activity chart (last 7 days)
+  const activityData = analyticsData?.throughputData || [];
 
   const stats = [
     { label: 'Organizations', value: orgs.length },
-    { label: 'Admins', value: orgs.length * 2 + 3 },
-    { label: 'Documents', value: docs.length },
+    { label: 'Admins', value: adminCount },
+    { label: 'Documents', value: totalDocuments },
   ];
 
   return (
@@ -38,7 +54,13 @@ const SuperAdminDashboard = () => {
         {stats.map((stat) => (
           <Card key={stat.label} className="p-6">
             <p className="text-sm uppercase tracking-[0.4em] text-blue-300">{stat.label}</p>
-            <p className="mt-2 text-4xl font-semibold">{stat.value}</p>
+            <p className="mt-2 text-4xl font-semibold">
+              {(stat.label === 'Admins' && usersLoading) || (stat.label === 'Documents' && analyticsLoading) ? (
+                <span className="text-slate-400">...</span>
+              ) : (
+                stat.value
+              )}
+            </p>
           </Card>
         ))}
       </div>
@@ -49,23 +71,72 @@ const SuperAdminDashboard = () => {
       )}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
-          <p className="text-sm text-slate-300/80">Activity (orgs + documents)</p>
-          <div className="h-64">
-            <ResponsiveContainer>
-              <AreaChart data={activity}>
-                <defs>
-                  <linearGradient id="colorDocs" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="date" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip />
-                <Area dataKey="documents" stroke="#38bdf8" fill="url(#colorDocs)" strokeWidth={3} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <p className="text-sm text-slate-300/80">Document Activity (Last 7 Days)</p>
+          {analyticsLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="text-slate-400">Loading activity data...</div>
+            </div>
+          ) : activityData.length > 0 ? (
+            <div className="h-64">
+              <ResponsiveContainer>
+                <AreaChart data={activityData}>
+                  <defs>
+                    <linearGradient id="colorApproved" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorPending" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorRevoked" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="date" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                    labelStyle={{ color: '#e2e8f0' }}
+                  />
+                  <Legend />
+                  <Area 
+                    type="monotone" 
+                    dataKey="approved" 
+                    stackId="1"
+                    stroke="#10b981" 
+                    fill="url(#colorApproved)" 
+                    strokeWidth={2}
+                    name="Approved"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="pending" 
+                    stackId="1"
+                    stroke="#f59e0b" 
+                    fill="url(#colorPending)" 
+                    strokeWidth={2}
+                    name="Pending"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="revoked" 
+                    stackId="1"
+                    stroke="#ef4444" 
+                    fill="url(#colorRevoked)" 
+                    strokeWidth={2}
+                    name="Revoked"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-64 flex items-center justify-center">
+              <p className="text-slate-400">No activity data available</p>
+            </div>
+          )}
         </Card>
         <Card className="p-6">
           <p className="text-sm text-slate-300/80">Recent org activity</p>

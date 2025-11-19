@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ResponsiveContainer, BarChart, XAxis, YAxis, Tooltip, Bar, PieChart, Pie, Cell } from 'recharts';
 import { documentApi } from '../../api/documentApi';
+import { analyticsApi } from '../../api/analyticsApi';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 import PageHeader from '../../components/ui/PageHeader';
@@ -18,29 +19,26 @@ const AdminDashboard = () => {
 
   const { data: documents = [], error } = useQuery({
     queryKey: ['documents'],
-    queryFn: documentApi.listUserDocs,
+    queryFn: documentApi.getAll,
+  });
+
+  const { data: analytics } = useQuery({
+    queryKey: ['analytics-summary'],
+    queryFn: analyticsApi.getSummary,
   });
 
   const stats = [
-    { label: 'Total documents', value: documents.length || 42, trend: '+6%' },
-    { label: 'Approved', value: documents.filter((d) => d.status === 'verified').length || 28, trend: '+2%' },
-    { label: 'Pending', value: documents.filter((d) => d.status === 'pending').length || 9, trend: '-1%' },
-    { label: 'Revoked', value: documents.filter((d) => d.status === 'revoked').length || 5, trend: '+11%' },
+    { label: 'Total documents', value: analytics?.data?.totalDocuments || 0, trend: '+6%' },
+    { label: 'Approved', value: analytics?.data?.approved || 0, trend: '+2%' },
+    { label: 'Pending', value: analytics?.data?.pending || 0, trend: '-1%' },
+    { label: 'Revoked', value: analytics?.data?.revoked || 0, trend: '+11%' },
   ];
 
-  const analyticsData = [
-    { name: 'Mon', verified: 12, pending: 3 },
-    { name: 'Tue', verified: 18, pending: 2 },
-    { name: 'Wed', verified: 16, pending: 5 },
-    { name: 'Thu', verified: 22, pending: 1 },
-    { name: 'Fri', verified: 20, pending: 4 },
-  ];
-
-  const pieData = [
-    { name: 'Verified', value: 68, color: '#00C4B4' },
-    { name: 'Pending', value: 22, color: '#FFC857' },
-    { name: 'Revoked', value: 10, color: '#FF6B6B' },
-  ];
+  const analyticsData = analytics?.data?.throughputData || [];
+  const pieData = analytics?.data?.pieData?.map((item, index) => ({
+    ...item,
+    color: index === 0 ? '#00C4B4' : index === 1 ? '#FFC857' : '#FF6B6B'
+  })) || [];
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
@@ -64,7 +62,7 @@ const AdminDashboard = () => {
                 <XAxis dataKey="name" stroke="#94a3b8" />
                 <YAxis stroke="#94a3b8" />
                 <Tooltip />
-                <Bar dataKey="verified" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="approved" fill="#3b82f6" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="pending" fill="#facc15" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -87,7 +85,7 @@ const AdminDashboard = () => {
             {pieData.map((item) => (
               <div key={item.name} className="flex items-center justify-between">
                 <span>{item.name}</span>
-                <span>{item.value}%</span>
+                <span>{item.percentage}%</span>
               </div>
             ))}
           </div>

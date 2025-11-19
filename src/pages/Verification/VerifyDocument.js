@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { motion } from 'framer-motion';
@@ -21,6 +21,10 @@ const VerifyDocument = () => {
   const { enqueueSnackbar } = useSnackbar();
   const isAuthenticated = useAuthStore((state) => !!state.token);
   
+  // Refs for file inputs
+  const fileInputRef = useRef(null);
+  const qrInputRef = useRef(null);
+  
   const [docId, setDocId] = useState('');
   const [file, setFile] = useState(null);
   const [hashes, setHashes] = useState(null);
@@ -35,29 +39,30 @@ const VerifyDocument = () => {
   // Handle mode change and reset relevant state
   const handleModeChange = (mode) => {
     setVerificationMode(mode);
-    // Clear mode-specific state
-    if (mode !== 'file') {
-      setFile(null);
-      setHashes(null);
-    }
-    if (mode !== 'qr') {
-      setQrImage(null);
-      setQrData(null);
-    }
-    if (mode !== 'manual') {
-      setManualHash('');
-    }
-    // Clear shared state
-    if (mode === 'qr') {
-      // Keep docId for QR mode as it gets auto-filled
-    } else {
-      setDocId('');
-    }
+    // Clear ALL state when switching modes for proper isolation
+    setFile(null);
+    setHashes(null);
+    setQrImage(null);
+    setQrData(null);
+    setManualHash('');
+    setDocId('');
+    setShowROISelector(false);
+    setPdfCanvas(null);
+    mutation.reset(); // Clear previous results
+    
+    // Clear file input elements
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (qrInputRef.current) qrInputRef.current.value = '';
   };
   
   // Use authenticated API if logged in, public API otherwise
   const mutation = useMutation({
     mutationFn: (payload) => {
+      // QR mode, manual mode, or file mode with QR data always use public API (supports versionHash)
+      if (verificationMode === 'qr' || verificationMode === 'manual' || payload.versionHash) {
+        return publicApi.verify(payload);
+      }
+      // File mode with hashes uses authenticated API if logged in (requires hashes object)
       if (isAuthenticated) {
         return verificationApi.verifyHashes(payload);
       } else {
@@ -65,7 +70,7 @@ const VerifyDocument = () => {
       }
     },
     onSuccess: (data) => {
-      if (isAuthenticated) {
+      if (isAuthenticated && verificationMode === 'file') {
         enqueueSnackbar('Verification completed and logged to your account.', { variant: 'success' });
       } else {
         enqueueSnackbar('Verification completed.', { variant: 'success' });
@@ -90,20 +95,35 @@ const VerifyDocument = () => {
     setFile(uploaded);
     setHashing(true);
     setHashes(null);
+    setQrData(null); // Clear any previous QR data
     
     try {
-      // First extract text and image hashes
+      // First, try to detect QR code in the file
+      const qrDetected = await tryDetectQRInFile(uploaded);
+      if (qrDetected) {
+        enqueueSnackbar('QR code detected in file! You can verify using the QR data or continue with hash extraction.', { variant: 'info' });
+      }
+      
+      // Then extract text and image hashes
       const extractedHashes = await extractAllHashes(uploaded, null, null);
       setHashes(extractedHashes);
       
-      // Render PDF to canvas for ROI selection
-      const canvas = await renderPDFToCanvas(uploaded);
-      setPdfCanvas(canvas);
-      
-      // Show ROI selector modal
-      setShowROISelector(true);
-      
-      enqueueSnackbar('Hashes extracted. Select signature/stamp regions if needed.', { variant: 'info' });
+      // Only try to render PDF canvas if it's a PDF file
+      if (uploaded.type === 'application/pdf') {
+        try {
+          const canvas = await renderPDFToCanvas(uploaded);
+          setPdfCanvas(canvas);
+          // Show ROI selector modal for PDFs
+          setShowROISelector(true);
+          enqueueSnackbar('Hashes extracted. Select signature/stamp regions if needed.', { variant: 'info' });
+        } catch (pdfError) {
+          console.error('PDF rendering error:', pdfError);
+          enqueueSnackbar('Hashes extracted successfully.', { variant: 'success' });
+        }
+      } else {
+        // For images, hashes are already extracted
+        enqueueSnackbar('Hashes extracted successfully from image.', { variant: 'success' });
+      }
     } catch (error) {
       console.error(error);
       enqueueSnackbar('Unable to extract hashes from file.', { variant: 'error' });
@@ -111,6 +131,63 @@ const VerifyDocument = () => {
     } finally {
       setHashing(false);
     }
+  };
+
+  // Helper function to try detecting QR code in uploaded file
+  const tryDetectQRInFile = async (file) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          // Try multiple scales
+          const scales = [1, 2, 0.5];
+          let code = null;
+          
+          for (const scale of scales) {
+            const width = img.width * scale;
+            const height = img.height * scale;
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            const imageData = ctx.getImageData(0, 0, width, height);
+            code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: "attemptBoth"
+            });
+            
+            if (code) {
+              console.log(`✓ QR detected in file at scale ${scale}x`);
+              break;
+            }
+          }
+
+          if (code) {
+            const urlMatch = code.data.match(/papdocauthx:\/\/([^/]+)\/(.+)/);
+            if (urlMatch) {
+              const [, scannedDocId, versionHash] = urlMatch;
+              setQrData({ docId: scannedDocId, versionHash });
+              setDocId(scannedDocId);
+              resolve(true);
+            } else {
+              resolve(false);
+            }
+          } else {
+            resolve(false);
+          }
+        };
+        img.onerror = () => resolve(false);
+        img.src = e.target.result;
+      };
+      reader.onerror = () => resolve(false);
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleROIComplete = async (signatureBox, stampBox) => {
@@ -164,29 +241,81 @@ const VerifyDocument = () => {
           // Create canvas to extract image data
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-
-          // Get image data and decode QR
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          
+          // Try multiple scales to improve detection for screenshots
+          const scales = [1, 2, 0.5];
+          let code = null;
+          
+          for (const scale of scales) {
+            const width = img.width * scale;
+            const height = img.height * scale;
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Clear and redraw at new scale
+            ctx.clearRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // Apply slight contrast enhancement for better QR detection
+            const imageData = ctx.getImageData(0, 0, width, height);
+            
+            // Try to decode QR with inverted colors option
+            code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: "attemptBoth"
+            });
+            
+            if (code) {
+              console.log(`✓ QR detected at scale ${scale}x`);
+              break;
+            }
+          }
 
           if (code) {
-            // QR data format: papdocauthx://docId/versionHash
-            const match = code.data.match(/papdocauthx:\/\/([^/]+)\/(.+)/);
+            console.log('=== QR CODE SCAN SUCCESS ===');
+            console.log('Full QR data:', code.data);
+            console.log('Data length:', code.data.length);
+            console.log('Data type:', typeof code.data);
             
-            if (match) {
-              const [, scannedDocId, versionHash] = match;
+            // Try URL format first: papdocauthx://docId/versionHash
+            const urlMatch = code.data.match(/papdocauthx:\/\/([^/]+)\/(.+)/);
+            
+            if (urlMatch) {
+              const [, scannedDocId, versionHash] = urlMatch;
+              console.log('✓ Matched URL format');
+              console.log('  - DocId:', scannedDocId);
+              console.log('  - Hash:', versionHash);
+              console.log('  - Hash length:', versionHash.length);
               setDocId(scannedDocId);
               setManualHash(versionHash);
               setQrData({ docId: scannedDocId, versionHash });
               enqueueSnackbar('QR code decoded successfully!', { variant: 'success' });
             } else {
-              enqueueSnackbar('Invalid QR code format. Expected PapDocAuthX QR code.', { variant: 'error' });
+              console.log('❌ URL format match failed');
+              console.log('Expected format: papdocauthx://DOC_ID/VERSION_HASH');
+              console.log('Got:', code.data);
+              
+              // Try JSON format as fallback
+              try {
+                console.log('Trying JSON parse...');
+                const parsed = JSON.parse(code.data);
+                console.log('Parsed JSON:', parsed);
+                if (parsed.docId && parsed.versionHash) {
+                  setDocId(parsed.docId);
+                  setManualHash(parsed.versionHash);
+                  setQrData({ docId: parsed.docId, versionHash: parsed.versionHash });
+                  enqueueSnackbar('QR code decoded successfully!', { variant: 'success' });
+                } else {
+                  console.error('JSON missing required fields:', parsed);
+                  enqueueSnackbar(`Invalid QR: ${code.data.substring(0, 40)}... Expected PapDocAuthX format`, { variant: 'error' });
+                }
+              } catch (e) {
+                console.error('QR decode error:', e, 'Raw data:', code.data);
+                enqueueSnackbar(`Not a PapDocAuthX QR. Found: "${code.data.substring(0, 50)}..."`, { variant: 'error' });
+              }
             }
           } else {
-            enqueueSnackbar('No QR code found in image. Please upload a clear QR code image.', { variant: 'warning' });
+            console.log('❌ QR code detection failed at all scales');
+            enqueueSnackbar('No QR code detected. Try: 1) Download QR directly (not screenshot) 2) Use Manual Entry mode with the QR data text 3) Ensure good image quality', { variant: 'warning' });
           }
         };
         img.src = e.target.result;
@@ -202,21 +331,32 @@ const VerifyDocument = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     
-    if (verificationMode === 'manual' || verificationMode === 'qr') {
+    if (verificationMode === 'qr') {
+      // QR mode: use decoded QR data (docId + versionHash)
+      if (!qrData) {
+        enqueueSnackbar('Upload a QR code image first.', { variant: 'warning' });
+        return;
+      }
+      console.log('Submitting QR verification:', { docId: qrData.docId, versionHash: qrData.versionHash });
+      mutation.mutate({ docId: qrData.docId, versionHash: qrData.versionHash });
+    } else if (verificationMode === 'manual') {
+      // Manual mode: user enters docId and hash
       if (!docId || !manualHash) {
         enqueueSnackbar('Provide document ID and version hash.', { variant: 'warning' });
         return;
       }
       mutation.mutate({ docId, versionHash: manualHash });
     } else {
-      if (!docId || !hashes) {
-        enqueueSnackbar('Provide a document ID and select a file.', { variant: 'warning' });
-        return;
-      }
-      if (isAuthenticated) {
-        mutation.mutate({ documentId: docId, ...hashes });
+      // File mode: can verify with QR data OR extracted hashes
+      if (qrData) {
+        // If QR was detected in file, offer to use that
+        console.log('File contains QR data, verifying with QR:', qrData);
+        mutation.mutate({ docId: qrData.docId, versionHash: qrData.versionHash });
+      } else if (docId && hashes) {
+        // Otherwise use traditional hash verification (authenticated API requires nested hashes object)
+        mutation.mutate({ docId, hashes });
       } else {
-        mutation.mutate({ docId, ...hashes });
+        enqueueSnackbar('Provide a document ID and select a file.', { variant: 'warning' });
       }
     }
   };
@@ -281,17 +421,18 @@ const VerifyDocument = () => {
       
       <form className="grid gap-8 lg:grid-cols-2" onSubmit={handleSubmit}>
         <Card className="space-y-5 p-6">
-          <Input
-            label="Document ID"
-            required
-            placeholder="DOC-2024-001"
-            value={docId}
-            onChange={(e) => setDocId(e.target.value)}
-            readOnly={verificationMode === 'qr' && qrData}
-            title={verificationMode === 'qr' && qrData ? 'Auto-filled from QR code' : ''}
-            helperText={verificationMode === 'qr' && qrData ? '✓ Auto-filled from QR code' : ''}
-            containerClassName="mb-5"
-          />
+          {/* Show Document ID field only when needed */}
+          {verificationMode !== 'qr' && !(verificationMode === 'file' && qrData) && (
+            <Input
+              label="Document ID"
+              required
+              placeholder="DOC-2024-001"
+              value={docId}
+              onChange={(e) => setDocId(e.target.value)}
+              helperText="Enter the document ID you want to verify"
+              containerClassName="mb-5"
+            />
+          )}
           
           {verificationMode === 'qr' ? (
             <div className="space-y-4">
@@ -299,6 +440,7 @@ const VerifyDocument = () => {
                 Upload QR Code Image <span className="text-rose-400">*</span>
               </label>
               <input
+                ref={qrInputRef}
                 type="file"
                 accept="image/*"
                 required
@@ -317,10 +459,13 @@ const VerifyDocument = () => {
                 <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-4 space-y-2">
                   <p className="text-sm font-semibold text-green-400">✓ QR Code Decoded</p>
                   <p className="text-xs text-slate-300">
-                    <span className="text-slate-500">Document ID:</span> {qrData.docId}
+                    <span className="text-slate-500">Document ID:</span> <strong>{qrData.docId}</strong>
                   </p>
                   <p className="text-xs font-mono text-slate-300 break-all">
                     <span className="text-slate-500">Version Hash:</span> {qrData.versionHash}
+                  </p>
+                  <p className="text-xs text-green-400 mt-2">
+                    Ready to verify - click the Verify button below
                   </p>
                 </div>
               )}
@@ -341,6 +486,7 @@ const VerifyDocument = () => {
                 Select document for hash extraction <span className="text-rose-400">*</span>
               </label>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept="application/pdf,image/*"
                 required
@@ -356,6 +502,20 @@ const VerifyDocument = () => {
                 PDF or Image files supported • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB
               </p>
               {hashing && <Loader label="Extracting cryptographic hashes..." />}
+              {qrData && verificationMode === 'file' && (
+                <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 space-y-2 mt-3">
+                  <p className="text-sm font-semibold text-blue-400">🎯 QR Code Found in File!</p>
+                  <p className="text-xs text-slate-300">
+                    <span className="text-slate-500">Document ID:</span> <strong>{qrData.docId}</strong>
+                  </p>
+                  <p className="text-xs font-mono text-slate-300 break-all">
+                    <span className="text-slate-500">Version Hash:</span> {qrData.versionHash}
+                  </p>
+                  <p className="text-xs text-blue-400 mt-2">
+                    You can verify using the QR data or continue with hash extraction
+                  </p>
+                </div>
+              )}
             </div>
           )}
           

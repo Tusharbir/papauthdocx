@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useQuery } from '@tanstack/react-query';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Loader from '../ui/Loader';
 import Modal from '../ui/Modal';
 import useUIStore from '../../store/uiStore';
 import { extractTextFromImage, extractImageHashFromImage, extractROIHash, computeMerkleRoot } from '../../utils/hashExtraction';
+import { metadataApi } from '../../api/metadataApi';
 import ROISelector from './ROISelector';
 
 const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
@@ -15,9 +17,16 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
   const [error, setError] = useState(null);
   const [showROISelector, setShowROISelector] = useState(false);
   const [imageCanvas, setImageCanvas] = useState(null);
+  const { data: documentTypesData } = useQuery({
+    queryKey: ['document-types'],
+    queryFn: metadataApi.getDocumentTypes,
+  });
+
+  const documentTypes = documentTypesData?.documentTypes || [];
+
   const [metadata, setMetadata] = useState({
     docId: '',
-    type: 'DEGREE_CERTIFICATE',
+    type: 'certificate',
     holderName: '',
     degreeTitle: '',
     issueDate: '',
@@ -197,7 +206,7 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
                   📷 Drag & drop a scanned image here, or click to select
                 </p>
                 <p className="text-sm">
-                  Supports JPG, PNG (OCR will extract text automatically)
+                  Supports JPG, PNG • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB • OCR extracts text automatically
                 </p>
               </>
             )}
@@ -294,11 +303,11 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               >
-                <option value="DEGREE_CERTIFICATE">Degree Certificate</option>
-                <option value="TRANSCRIPT">Transcript</option>
-                <option value="ID_CARD">ID Card</option>
-                <option value="LICENSE">License</option>
-                <option value="OTHER">Other</option>
+                {documentTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

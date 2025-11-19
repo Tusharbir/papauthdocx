@@ -192,7 +192,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
                   )}
                 </p>
                 <p className="text-sm text-slate-400">
-                  Only PDF files • Zero-document-upload security
+                  Only PDF files • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB • Zero-document-upload security
                 </p>
               </>
             )}

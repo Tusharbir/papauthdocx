@@ -1,11 +1,20 @@
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { useQuery } from '@tanstack/react-query';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Loader from '../ui/Loader';
 import useUIStore from '../../store/uiStore';
+import { metadataApi } from '../../api/metadataApi';
 
 const TextUploadForm = ({ onSubmit, isSubmitting }) => {
+  const { data: documentTypesData } = useQuery({
+    queryKey: ['document-types'],
+    queryFn: metadataApi.getDocumentTypes,
+  });
+
+  const documentTypes = documentTypesData?.documentTypes || [];
+
   const [file, setFile] = useState(null);
   const [textContent, setTextContent] = useState('');
   const [textHash, setTextHash] = useState('');
@@ -13,7 +22,7 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
   const [error, setError] = useState(null);
   const [metadata, setMetadata] = useState({
     docId: '',
-    type: 'OTHER',
+    type: 'other',
     holderName: '',
     degreeTitle: '',
     issueDate: '',
@@ -138,7 +147,7 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                   📄 Drag & drop a text file here, or click to select
                 </p>
                 <p className="text-sm">
-                  Supports TXT files only
+                  Supports TXT files • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB
                 </p>
               </>
             )}
@@ -219,9 +228,11 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               >
-                <option value="TRANSCRIPT">Transcript</option>
-                <option value="LICENSE">License</option>
-                <option value="OTHER">Other</option>
+                {documentTypes.map(type => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

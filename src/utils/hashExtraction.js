@@ -172,18 +172,34 @@ export async function extractImageHashFromImage(imageFile) {
  */
 export async function extractROIHash(canvas, boundingBox) {
   try {
+    if (!canvas || !boundingBox) {
+      throw new Error('Canvas or bounding box is missing');
+    }
+    
+    if (boundingBox.width <= 0 || boundingBox.height <= 0) {
+      throw new Error('Invalid bounding box dimensions');
+    }
+    
     const context = canvas.getContext('2d');
     const roi = context.getImageData(
-      boundingBox.x,
-      boundingBox.y,
-      boundingBox.width,
-      boundingBox.height
+      Math.round(boundingBox.x),
+      Math.round(boundingBox.y),
+      Math.round(boundingBox.width),
+      Math.round(boundingBox.height)
     );
+    
+    console.log('ROI extracted:', { 
+      x: Math.round(boundingBox.x), 
+      y: Math.round(boundingBox.y), 
+      width: Math.round(boundingBox.width), 
+      height: Math.round(boundingBox.height),
+      dataLength: roi.data.length
+    });
     
     return await computeSHA256(roi.data);
   } catch (error) {
     console.error('ROI extraction failed:', error);
-    throw new Error('Failed to extract ROI hash');
+    throw new Error(`Failed to extract ROI hash: ${error.message}`);
   }
 }
 
@@ -245,33 +261,58 @@ export async function computeMerkleRoot(textHash, imageHash, signatureHash, stam
 }
 
 /**
- * Extract all hashes from a PDF document
- * @param {File} pdfFile - PDF file object
+ * Extract all hashes from a PDF or image file
+ * @param {File} file - PDF or image file object
  * @param {Object|null} signatureBox - Signature bounding box or null
  * @param {Object|null} stampBox - Stamp bounding box or null
  * @returns {Promise<Object>} Object containing all hashes and merkle root
  */
-export async function extractAllHashes(pdfFile, signatureBox = null, stampBox = null) {
+export async function extractAllHashes(file, signatureBox = null, stampBox = null) {
   try {
-    // Extract text and image hashes in parallel
-    const [textHash, imageHash] = await Promise.all([
-      extractTextHash(pdfFile),
-      extractImageHash(pdfFile)
-    ]);
+    console.log('Extracting hashes from file:', file.type);
     
-    // Extract ROI hashes if bounding boxes provided
+    let textHash, imageHash;
+    
+    // Check if file is PDF or image
+    if (file.type === 'application/pdf') {
+      console.log('Processing as PDF...');
+      // Extract text and image hashes from PDF
+      [textHash, imageHash] = await Promise.all([
+        extractTextHash(file),
+        extractImageHash(file)
+      ]);
+    } else if (file.type.startsWith('image/')) {
+      console.log('Processing as image...');
+      // Extract text (via OCR) and image hashes from image
+      [textHash, imageHash] = await Promise.all([
+        extractTextFromImage(file),
+        extractImageHashFromImage(file)
+      ]);
+    } else {
+      throw new Error('Unsupported file type. Only PDF and image files are supported.');
+    }
+    
+    console.log('Base hashes extracted:', { textHash: textHash.substring(0, 16), imageHash: imageHash.substring(0, 16) });
+    
+    // Extract ROI hashes if bounding boxes provided (only for PDFs)
     let signatureHash = '';
     let stampHash = '';
     
-    if (signatureBox || stampBox) {
-      const canvas = await renderPDFToCanvas(pdfFile);
+    if ((signatureBox || stampBox) && file.type === 'application/pdf') {
+      console.log('Rendering PDF to canvas for ROI extraction...');
+      const canvas = await renderPDFToCanvas(file);
+      console.log('Canvas rendered:', { width: canvas.width, height: canvas.height });
       
       if (signatureBox) {
+        console.log('Extracting signature hash...');
         signatureHash = await extractROIHash(canvas, signatureBox);
+        console.log('Signature hash extracted:', signatureHash.substring(0, 16));
       }
       
       if (stampBox) {
+        console.log('Extracting stamp hash...');
         stampHash = await extractROIHash(canvas, stampBox);
+        console.log('Stamp hash extracted:', stampHash.substring(0, 16));
       }
     }
     
@@ -282,6 +323,8 @@ export async function extractAllHashes(pdfFile, signatureBox = null, stampBox = 
       signatureHash,
       stampHash
     );
+    
+    console.log('Merkle root computed:', merkleRoot.substring(0, 16));
     
     return {
       textHash,
