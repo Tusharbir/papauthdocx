@@ -97,7 +97,19 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
     onDrop,
     accept: { 'application/pdf': ['.pdf'] },
     maxFiles: 1,
-    disabled: processing || isSubmitting
+    maxSize: (parseInt(process.env.REACT_APP_MAX_FILE_SIZE_MB || '5')) * 1024 * 1024,
+    disabled: processing || isSubmitting,
+    onDropRejected: (fileRejections) => {
+      const rejection = fileRejections[0];
+      const maxSizeMB = process.env.REACT_APP_MAX_FILE_SIZE_MB || '5';
+      if (rejection?.errors[0]?.code === 'file-too-large') {
+        setError(`File size must be less than ${maxSizeMB}MB`);
+      } else if (rejection?.errors[0]?.code === 'file-invalid-type') {
+        setError('Only PDF files are accepted');
+      } else {
+        setError('File rejected. Please try another file.');
+      }
+    }
   });
 
   const handleSubmit = (e) => {
@@ -331,13 +343,15 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
     </form>
 
     {/* ROI Selector Modal */}
-    <Modal open={showROISelector} onClose={handleSkipROI}>
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>
-        <p className="text-sm text-slate-400">
-          Draw boxes around the signature and official stamp for enhanced verification. 
-          This step is optional - you can skip if the document has no signature/stamp.
-        </p>
+    <Modal open={showROISelector} onClose={handleSkipROI} size="full">
+      <div className="space-y-4 pr-8">
+        <div>
+          <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>
+          <p className="text-sm text-slate-400 mt-2">
+            Draw boxes around the signature and official stamp for enhanced verification. 
+            This step is optional - you can skip if the document has no signature/stamp.
+          </p>
+        </div>
         
         {pdfCanvas && (
           <ROISelector

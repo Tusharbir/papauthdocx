@@ -8,15 +8,21 @@ import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import { organizationApi } from '../../api/organizationApi';
 import { useSnackbar } from 'notistack';
+import useUIStore from '../../store/uiStore';
 
 const OrganizationAdmins = () => {
   const { id } = useParams();
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
+  const mode = useUIStore((state) => state.mode);
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [roleFilter, setRoleFilter] = useState('all');
   const [form, setForm] = useState({ fullName: '', email: '', password: '' });
+
+  const inputClass = mode === 'dark'
+    ? 'border-white/10 bg-white/5 text-white'
+    : 'border-slate-300 bg-white text-slate-900';
 
   const { data: admins = [] } = useQuery({ queryKey: ['org-admins', id], queryFn: () => organizationApi.listAdmins(id) });
 
@@ -37,12 +43,12 @@ const OrganizationAdmins = () => {
       <PageHeader title="Organization admins" subtitle={`Org ID: ${id}`} actions={[{ label: 'Create admin', onClick: () => setOpen(true) }]} />
       <div className="mb-4">
         <select
-          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm"
+          className={`rounded-full border px-4 py-2 text-sm ${inputClass}`}
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
         >
           <option value="all">All roles</option>
-          <option value="issuer-admin">Issuer admin</option>
+          <option value="issuer-admin">Organization Admin</option>
           <option value="compliance">Compliance</option>
         </select>
       </div>
@@ -61,17 +67,17 @@ const OrganizationAdmins = () => {
         ))}
       </div>
       <Modal open={open} onClose={() => setOpen(false)}>
-        <h3 className="text-lg font-semibold text-white">Create admin</h3>
+        <h3 className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Create admin</h3>
         <form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); mutation.mutate(form); }}>
           <input
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+            className={`w-full rounded-2xl border px-4 py-3 text-sm ${inputClass}`}
             placeholder="Full Name"
             value={form.fullName}
             onChange={(e) => setForm((prev) => ({ ...prev, fullName: e.target.value }))}
             required
           />
           <input
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+            className={`w-full rounded-2xl border px-4 py-3 text-sm ${inputClass}`}
             placeholder="Email"
             type="email"
             value={form.email}
@@ -79,7 +85,7 @@ const OrganizationAdmins = () => {
             required
           />
           <input
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
+            className={`w-full rounded-2xl border px-4 py-3 text-sm ${inputClass}`}
             placeholder="Password"
             type="password"
             value={form.password}
@@ -93,8 +99,8 @@ const OrganizationAdmins = () => {
       </Modal>
       <Modal open={Boolean(selected)} onClose={() => setSelected(null)}>
         {selected && (
-          <div className="space-y-3 text-sm text-slate-300">
-            <h3 className="text-lg font-semibold text-white">{selected.fullName || selected.name}</h3>
+          <div className={`space-y-3 text-sm ${mode === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
+            <h3 className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>{selected.fullName || selected.name}</h3>
             <p>
               <span className="text-slate-500">Email:</span> {selected.email}
             </p>

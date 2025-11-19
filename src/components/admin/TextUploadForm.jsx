@@ -73,7 +73,19 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
     accept: {
       'text/plain': ['.txt']
     },
-    multiple: false
+    multiple: false,
+    maxSize: (parseInt(process.env.REACT_APP_MAX_FILE_SIZE_MB || '5')) * 1024 * 1024,
+    onDropRejected: (fileRejections) => {
+      const rejection = fileRejections[0];
+      const maxSizeMB = process.env.REACT_APP_MAX_FILE_SIZE_MB || '5';
+      if (rejection?.errors[0]?.code === 'file-too-large') {
+        setError(`File size must be less than ${maxSizeMB}MB`);
+      } else if (rejection?.errors[0]?.code === 'file-invalid-type') {
+        setError('Only TXT files are accepted');
+      } else {
+        setError('File rejected. Please try another file.');
+      }
+    }
   });
 
   const handleMetadataChange = (e) => {

@@ -40,7 +40,7 @@ const useCases = [
   },
   {
     title: 'Enterprises',
-    text: 'Authenticate employment letters, NDAs and contracts with a tamper score and version chain.',
+    text: 'Authenticate employment letters, NDAs and contracts with tamper score and version chain.',
     emoji: '🏢',
     img: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800',
   },

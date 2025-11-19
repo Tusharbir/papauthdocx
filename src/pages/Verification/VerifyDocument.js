@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { motion } from 'framer-motion';
+import jsQR from 'jsqr';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
-import Topbar from '../../components/layout/Topbar';
-import Sidebar from '../../components/layout/Sidebar';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loader from '../../components/ui/Loader';
 import Modal from '../../components/ui/Modal';
+import Input from '../../components/ui/Input';
 import VerificationResultCard from '../../components/verification/VerificationResultCard';
 import ROISelector from '../../components/admin/ROISelector';
 import { verificationApi } from '../../api/verificationApi';
@@ -27,8 +27,33 @@ const VerifyDocument = () => {
   const [hashing, setHashing] = useState(false);
   const [showROISelector, setShowROISelector] = useState(false);
   const [pdfCanvas, setPdfCanvas] = useState(null);
-  const [verificationMode, setVerificationMode] = useState('file'); // 'file' or 'manual'
+  const [verificationMode, setVerificationMode] = useState('file'); // 'file', 'manual', or 'qr'
   const [manualHash, setManualHash] = useState('');
+  const [qrData, setQrData] = useState(null);
+  const [qrImage, setQrImage] = useState(null);
+  
+  // Handle mode change and reset relevant state
+  const handleModeChange = (mode) => {
+    setVerificationMode(mode);
+    // Clear mode-specific state
+    if (mode !== 'file') {
+      setFile(null);
+      setHashes(null);
+    }
+    if (mode !== 'qr') {
+      setQrImage(null);
+      setQrData(null);
+    }
+    if (mode !== 'manual') {
+      setManualHash('');
+    }
+    // Clear shared state
+    if (mode === 'qr') {
+      // Keep docId for QR mode as it gets auto-filled
+    } else {
+      setDocId('');
+    }
+  };
   
   // Use authenticated API if logged in, public API otherwise
   const mutation = useMutation({
@@ -52,6 +77,15 @@ const VerifyDocument = () => {
   const handleFileChange = async (event) => {
     const uploaded = event.target.files?.[0];
     if (!uploaded) return;
+    
+    // Validate file size (5MB max)
+    const maxSizeMB = parseInt(process.env.REACT_APP_MAX_FILE_SIZE_MB || '5');
+    const maxSize = maxSizeMB * 1024 * 1024;
+    if (uploaded.size > maxSize) {
+      enqueueSnackbar(`File size must be less than ${maxSizeMB}MB`, { variant: 'error' });
+      event.target.value = ''; // Clear the input
+      return;
+    }
     
     setFile(uploaded);
     setHashing(true);
@@ -102,10 +136,73 @@ const VerifyDocument = () => {
     enqueueSnackbar('Skipped signature/stamp selection.', { variant: 'info' });
   };
 
+  const handleQRImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size
+    const maxSizeMB = parseInt(process.env.REACT_APP_MAX_FILE_SIZE_MB || '5');
+    const maxSize = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSize) {
+      enqueueSnackbar(`QR image file size must be less than ${maxSizeMB}MB`, { variant: 'error' });
+      event.target.value = ''; // Clear the input
+      return;
+    }
+
+    setQrImage(file);
+    setQrData(null);
+    setDocId(''); // Clear previous docId
+    setManualHash(''); // Clear previous hash
+
+    try {
+      // Read the image file
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.onload = () => {
+          // Create canvas to extract image data
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          // Get image data and decode QR
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+          if (code) {
+            // QR data format: papdocauthx://docId/versionHash
+            const match = code.data.match(/papdocauthx:\/\/([^/]+)\/(.+)/);
+            
+            if (match) {
+              const [, scannedDocId, versionHash] = match;
+              setDocId(scannedDocId);
+              setManualHash(versionHash);
+              setQrData({ docId: scannedDocId, versionHash });
+              enqueueSnackbar('QR code decoded successfully!', { variant: 'success' });
+            } else {
+              enqueueSnackbar('Invalid QR code format. Expected PapDocAuthX QR code.', { variant: 'error' });
+            }
+          } else {
+            enqueueSnackbar('No QR code found in image. Please upload a clear QR code image.', { variant: 'warning' });
+          }
+        };
+        img.src = e.target.result;
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error(error);
+      enqueueSnackbar('Failed to process QR image', { variant: 'error' });
+    }
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     
-    if (verificationMode === 'manual') {
+    if (verificationMode === 'manual' || verificationMode === 'qr') {
       if (!docId || !manualHash) {
         enqueueSnackbar('Provide document ID and version hash.', { variant: 'warning' });
         return;
@@ -149,60 +246,105 @@ const VerifyDocument = () => {
       <div className="flex gap-3 mb-10">
         <button
           type="button"
-          onClick={() => setVerificationMode('file')}
+          onClick={() => handleModeChange('file')}
           className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
             verificationMode === 'file'
               ? 'bg-blue-500 text-white'
               : 'bg-white/5 text-slate-400 hover:bg-white/10'
           }`}
         >
-          Select Document File
+          📄 Upload File
         </button>
         <button
           type="button"
-          onClick={() => setVerificationMode('manual')}
+          onClick={() => handleModeChange('qr')}
+          className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+            verificationMode === 'qr'
+              ? 'bg-blue-500 text-white'
+              : 'bg-white/5 text-slate-400 hover:bg-white/10'
+          }`}
+        >
+          🖼️ Upload QR Code
+        </button>
+        <button
+          type="button"
+          onClick={() => handleModeChange('manual')}
           className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
             verificationMode === 'manual'
               ? 'bg-blue-500 text-white'
               : 'bg-white/5 text-slate-400 hover:bg-white/10'
           }`}
         >
-          Manual Hash Entry
+          ⌨️ Manual Entry
         </button>
       </div>
       
       <form className="grid gap-8 lg:grid-cols-2" onSubmit={handleSubmit}>
         <Card className="space-y-5 p-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Document ID</label>
-            <input
-              required
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm"
-              placeholder="DOC-2024-001"
-              value={docId}
-              onChange={(e) => setDocId(e.target.value)}
-            />
-          </div>
+          <Input
+            label="Document ID"
+            required
+            placeholder="DOC-2024-001"
+            value={docId}
+            onChange={(e) => setDocId(e.target.value)}
+            readOnly={verificationMode === 'qr' && qrData}
+            title={verificationMode === 'qr' && qrData ? 'Auto-filled from QR code' : ''}
+            helperText={verificationMode === 'qr' && qrData ? '✓ Auto-filled from QR code' : ''}
+            containerClassName="mb-5"
+          />
           
-          {verificationMode === 'manual' ? (
-            <div className="space-y-2">
-              <label className="text-sm font-semibold">Version Hash</label>
+          {verificationMode === 'qr' ? (
+            <div className="space-y-4">
+              <label className="text-sm font-semibold">
+                Upload QR Code Image <span className="text-rose-400">*</span>
+              </label>
               <input
+                type="file"
+                accept="image/*"
                 required
-                className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 font-mono text-sm"
-                placeholder="0x4be52cf2d09570a3..."
-                value={manualHash}
-                onChange={(e) => setManualHash(e.target.value)}
+                className="w-full rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-3 text-sm transition-colors focus:border-blue-400"
+                onChange={handleQRImageUpload}
               />
-              <p className="text-xs text-slate-400">Enter the version hash from the document or QR code</p>
+              {qrImage && (
+                <p className="text-xs text-slate-400">
+                  {qrImage.name} • {(qrImage.size / 1024).toFixed(1)} KB
+                </p>
+              )}
+              <p className="text-xs text-slate-400">
+                Upload a screenshot or image containing the document's QR code • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB
+              </p>
+              {qrData && (
+                <div className="rounded-2xl border border-green-500/30 bg-green-500/10 p-4 space-y-2">
+                  <p className="text-sm font-semibold text-green-400">✓ QR Code Decoded</p>
+                  <p className="text-xs text-slate-300">
+                    <span className="text-slate-500">Document ID:</span> {qrData.docId}
+                  </p>
+                  <p className="text-xs font-mono text-slate-300 break-all">
+                    <span className="text-slate-500">Version Hash:</span> {qrData.versionHash}
+                  </p>
+                </div>
+              )}
             </div>
+          ) : verificationMode === 'manual' ? (
+            <Input
+              label="Version Hash"
+              required
+              placeholder="0x4be52cf2d09570a3..."
+              value={manualHash}
+              onChange={(e) => setManualHash(e.target.value)}
+              className="font-mono"
+              helperText="Enter the version hash from the document or QR code"
+            />
           ) : (
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Select document for hash extraction</label>
+              <label className="text-sm font-semibold">
+                Select document for hash extraction <span className="text-rose-400">*</span>
+              </label>
               <input
                 type="file"
                 accept="application/pdf,image/*"
-                className="w-full rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-3 text-sm"
+                required
+                className="w-full rounded-2xl border border-dashed border-white/20 bg-white/5 px-4 py-3 text-sm transition-colors focus:border-blue-400"
                 onChange={handleFileChange}
               />
               {file && (
@@ -210,6 +352,9 @@ const VerifyDocument = () => {
                   {file.name} • {(file.size / 1024).toFixed(1)} KB
                 </p>
               )}
+              <p className="text-xs text-slate-400">
+                PDF or Image files supported • Max {process.env.REACT_APP_MAX_FILE_SIZE_MB || 5}MB
+              </p>
               {hashing && <Loader label="Extracting cryptographic hashes..." />}
             </div>
           )}
@@ -234,8 +379,11 @@ const VerifyDocument = () => {
             </div>
           )}
           {mutation.isError && <p className="text-xs text-rose-300">{mutation.error?.response?.data?.message || 'Verification failed'}</p>}
-          <Button type="submit" className="w-full" disabled={mutation.isPending || hashing}>
-            {mutation.isPending ? 'Verifying…' : 'Compare with backend'}
+          <Button 
+            type="submit" 
+            className="w-full"
+          >
+            {mutation.isPending ? 'Verifying…' : hashing ? 'Processing…' : 'Verify'}
           </Button>
         </Card>
         <VerificationResultCard result={mutation.data} />
@@ -246,17 +394,9 @@ const VerifyDocument = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-white">
       {isAuthenticated ? (
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Topbar />
-            <main className="flex-1 overflow-y-auto bg-slate-950 px-6 py-8">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                {renderVerificationContent()}
-              </motion.div>
-            </main>
-          </div>
-        </div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          {renderVerificationContent()}
+        </motion.div>
       ) : (
         <>
           <Navbar />

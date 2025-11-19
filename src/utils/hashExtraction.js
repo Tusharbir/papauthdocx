@@ -111,6 +111,60 @@ export async function extractTextFromImage(imageFile) {
 }
 
 /**
+ * Extract image hash from image file (JPG, PNG, etc.)
+ * @param {File} imageFile - Image file object
+ * @returns {Promise<string>} SHA-256 hash of image pixel data
+ */
+export async function extractImageHashFromImage(imageFile) {
+  try {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        img.onload = async () => {
+          try {
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Draw image to canvas
+            context.drawImage(img, 0, 0);
+            
+            // Get image data and convert to grayscale
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const pixels = imageData.data;
+            
+            // Convert to grayscale
+            for (let i = 0; i < pixels.length; i += 4) {
+              const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+              pixels[i] = pixels[i + 1] = pixels[i + 2] = gray;
+            }
+            
+            // Compute hash of pixel data
+            const hash = await computeSHA256(pixels);
+            resolve(hash);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = e.target.result;
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.readAsDataURL(imageFile);
+    });
+  } catch (error) {
+    console.error('Image hash extraction failed:', error);
+    throw new Error('Failed to extract image hash from image file');
+  }
+}
+
+/**
  * Extract ROI (Region of Interest) hash from canvas
  * @param {HTMLCanvasElement} canvas - Canvas containing the image
  * @param {Object} boundingBox - Bounding box {x, y, width, height}

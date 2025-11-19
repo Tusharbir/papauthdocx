@@ -11,16 +11,18 @@ import Badge from '../../components/ui/Badge';
 import Loader from '../../components/ui/Loader';
 
 const DocumentDetails = () => {
-  const { documentId = 'DOC-2024-001' } = useParams();
+  const { docId } = useParams();
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
+  const mode = useUIStore((state) => state.mode);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Documents', documentId]);
-  }, [documentId, setBreadcrumbs]);
+    setBreadcrumbs(['PapDocAuthX+', 'Documents', docId || 'Details']);
+  }, [docId, setBreadcrumbs]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['document-details', documentId],
-    queryFn: () => documentApi.getDetails(documentId),
+    queryKey: ['document-details', docId],
+    queryFn: () => documentApi.getDetails(docId),
+    enabled: !!docId,
   });
 
   if (isLoading) {
@@ -36,35 +38,37 @@ const DocumentDetails = () => {
   }
 
   const hashRows = [
-    { label: 'Current hash', value: data.hashes?.current, tone: 'success' },
-    { label: 'Previous hash', value: data.hashes?.previous, tone: 'info' },
-    { label: 'Merkle root', value: data.hashes?.merkleRoot, tone: 'warning' },
+    { label: 'Merkle Root', value: data.latestHashParts?.textHash ? data.versions?.[0]?.merkleRoot : null, tone: 'warning' },
+    { label: 'Text Hash', value: data.latestHashParts?.textHash, tone: 'success' },
+    { label: 'Image Hash', value: data.latestHashParts?.imageHash, tone: 'info' },
+    { label: 'Signature Hash', value: data.latestHashParts?.signatureHash, tone: 'info' },
+    { label: 'Stamp Hash', value: data.latestHashParts?.stampHash, tone: 'info' },
   ].filter((row) => row.value);
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      <PageHeader title={data.name} subtitle={`Document ${data.id}`} />
+      <PageHeader title={data.docId} subtitle={`Document Type: ${data.type}`} />
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-blue-300">Owner</p>
-              <p className="text-lg font-semibold">{data.metadata.owner}</p>
+              <p className="text-xs uppercase tracking-[0.4em] text-blue-300">Document ID</p>
+              <p className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>{data.docId}</p>
             </div>
-            <Badge tone="info">{data.metadata.versions} versions</Badge>
+            <Badge tone="info">{data.currentVersion} version{data.currentVersion !== 1 ? 's' : ''}</Badge>
           </div>
-          <div className="mt-6 grid gap-4 md:grid-cols-3 text-sm text-slate-300">
+          <div className={`mt-6 grid gap-4 md:grid-cols-3 text-sm ${mode === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Uploaded by</p>
-              <p className="font-semibold text-white">{data.metadata.uploadedBy}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Type</p>
+              <p className={`font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>{data.type}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Uploaded at</p>
-              <p>{new Date(data.metadata.uploadedAt).toLocaleString()}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Org ID</p>
+              <p>{data.ownerOrgId}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Versions</p>
-              <p>{data.metadata.versions ?? '--'}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Created</p>
+              <p>{new Date(data.createdAt).toLocaleString()}</p>
             </div>
           </div>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -77,33 +81,39 @@ const DocumentDetails = () => {
           </div>
         </Card>
         <Card className="p-6 flex flex-col items-center justify-center text-center">
-          <p className="text-sm text-slate-400">Secure QR identity</p>
+          <p className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Secure QR identity</p>
           <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
-            <QRCodeCanvas value={`papdocauthx://${data.id}`} size={180} bgColor="transparent" fgColor="#00e0ff" />
+            <QRCodeCanvas value={`papdocauthx://${data.docId}`} size={180} bgColor="transparent" fgColor="#00e0ff" />
           </div>
-          <p className="mt-4 text-sm text-slate-300">Document ID: {data.id}</p>
+          <p className={`mt-4 text-sm ${mode === 'dark' ? 'text-slate-300' : 'text-slate-700'}`}>Document ID: {data.docId}</p>
         </Card>
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
-          <p className="text-sm text-slate-400">Version timeline</p>
+          <p className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Version timeline</p>
           <div className="mt-4 space-y-4">
-            {data.versions?.map((version) => (
-              <div key={version.version || version.versionNumber} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <div>
-                  <p className="font-semibold">{version.version || `v${version.versionNumber}`}</p>
-                  <p className="text-xs text-slate-400">{version.date || (version.timestamp ? new Date(version.timestamp).toLocaleString() : '')}</p>
+            {data.versions?.length > 0 ? (
+              data.versions.map((version) => (
+                <div key={version.versionNumber} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div>
+                    <p className={`font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>v{version.versionNumber}</p>
+                    <p className="text-xs text-slate-400">{new Date(version.createdAt).toLocaleString()}</p>
+                  </div>
+                  <Badge tone={version.workflowStatus === 'APPROVED' ? 'success' : 'error'}>
+                    {version.workflowStatus}
+                  </Badge>
+                  <p className={`max-w-sm break-all font-mono text-xs ${mode === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>{version.versionHash}</p>
                 </div>
-                <p className="text-xs text-slate-400">{version.author}</p>
-                <p className="max-w-sm break-all font-mono text-xs text-slate-300">{version.hash}</p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-sm text-slate-500">No versions found</p>
+            )}
           </div>
         </Card>
         <Card className="p-6">
-          <p className="text-sm text-slate-400">Merkle root</p>
-          <div className="mt-4 flex h-48 items-center justify-center rounded-3xl border border-dashed border-emerald-400/40 bg-emerald-500/5 p-4 text-center text-xs text-emerald-200">
-            {data.hashes?.merkleRoot}
+          <p className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>Latest Merkle Root</p>
+          <div className="mt-4 flex min-h-[12rem] items-center justify-center rounded-3xl border border-dashed border-emerald-400/40 bg-emerald-500/5 p-4 text-center text-xs text-emerald-200 break-all">
+            {data.versions?.[0]?.merkleRoot || 'N/A'}
           </div>
         </Card>
       </div>

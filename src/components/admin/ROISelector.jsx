@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import Card from '../ui/Card';
 import Button from '../ui/Button';
 
 /**
@@ -13,9 +12,11 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [currentBox, setCurrentBox] = useState(null);
+  const [zoom, setZoom] = useState(1);
   
   const canvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     if (canvas && canvasRef.current) {
@@ -38,40 +39,40 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
     // Draw signature box
     if (signatureBox) {
       ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 / zoom;
       ctx.strokeRect(signatureBox.x, signatureBox.y, signatureBox.width, signatureBox.height);
       ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
       ctx.fillRect(signatureBox.x, signatureBox.y, signatureBox.width, signatureBox.height);
       
       // Label
       ctx.fillStyle = '#10b981';
-      ctx.font = 'bold 14px sans-serif';
+      ctx.font = `bold ${14 / zoom}px sans-serif`;
       ctx.fillText('SIGNATURE', signatureBox.x + 5, signatureBox.y - 5);
     }
     
     // Draw stamp box
     if (stampBox) {
       ctx.strokeStyle = '#3b82f6';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 / zoom;
       ctx.strokeRect(stampBox.x, stampBox.y, stampBox.width, stampBox.height);
       ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
       ctx.fillRect(stampBox.x, stampBox.y, stampBox.width, stampBox.height);
       
       // Label
       ctx.fillStyle = '#3b82f6';
-      ctx.font = 'bold 14px sans-serif';
+      ctx.font = `bold ${14 / zoom}px sans-serif`;
       ctx.fillText('STAMP', stampBox.x + 5, stampBox.y - 5);
     }
     
     // Draw current selection
     if (currentBox) {
       ctx.strokeStyle = selectionMode === 'signature' ? '#10b981' : '#3b82f6';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 2 / zoom;
+      ctx.setLineDash([5 / zoom, 5 / zoom]);
       ctx.strokeRect(currentBox.x, currentBox.y, currentBox.width, currentBox.height);
       ctx.setLineDash([]);
     }
-  }, [signatureBox, stampBox, currentBox, selectionMode]);
+  }, [signatureBox, stampBox, currentBox, selectionMode, zoom]);
 
   useEffect(() => {
     drawOverlay();
@@ -81,8 +82,11 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
     if (!selectionMode) return;
     
     const rect = overlayCanvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scrollLeft = containerRef.current.scrollLeft;
+    const scrollTop = containerRef.current.scrollTop;
+    
+    const x = (e.clientX - rect.left + scrollLeft) / zoom;
+    const y = (e.clientY - rect.top + scrollTop) / zoom;
     
     setIsDrawing(true);
     setStartPoint({ x, y });
@@ -93,8 +97,11 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
     if (!isDrawing || !startPoint) return;
     
     const rect = overlayCanvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const scrollLeft = containerRef.current.scrollLeft;
+    const scrollTop = containerRef.current.scrollTop;
+    
+    const x = (e.clientX - rect.left + scrollLeft) / zoom;
+    const y = (e.clientY - rect.top + scrollTop) / zoom;
     
     const width = x - startPoint.x;
     const height = y - startPoint.y;
@@ -136,75 +143,112 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
   if (!canvas) return null;
 
   return (
-    <Card className="p-6">
-      <h3 className="text-lg font-semibold mb-4">3. Select ROI (Optional - Enhanced Security)</h3>
-      <p className="text-sm text-slate-400 mb-4">
-        For enhanced verification, select signature and stamp regions. This adds two additional cryptographic hashes.
-      </p>
-      
-      <div className="mb-4 flex gap-3">
-        <Button
-          type="button"
-          onClick={() => setSelectionMode('signature')}
-          className={`text-sm ${selectionMode === 'signature' ? 'bg-green-500' : ''}`}
-          disabled={!!signatureBox}
-        >
-          {signatureBox ? '✓ Signature Selected' : 'Select Signature Region'}
-        </Button>
-        <Button
-          type="button"
-          onClick={() => setSelectionMode('stamp')}
-          className={`text-sm ${selectionMode === 'stamp' ? 'bg-blue-500' : ''}`}
-          disabled={!!stampBox}
-        >
-          {stampBox ? '✓ Stamp Selected' : 'Select Stamp Region'}
-        </Button>
-        {(signatureBox || stampBox) && (
+    <div className="space-y-4">
+      {/* Control Buttons */}
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex gap-3">
           <Button
             type="button"
-            onClick={() => {
-              setSignatureBox(null);
-              setStampBox(null);
-            }}
-            className="text-sm bg-rose-500"
+            onClick={() => setSelectionMode('signature')}
+            className={`${selectionMode === 'signature' ? 'bg-green-500' : ''}`}
+            disabled={!!signatureBox}
           >
-            Clear All
+            {signatureBox ? '✓ Signature' : 'Select Signature'}
           </Button>
-        )}
+          <Button
+            type="button"
+            onClick={() => setSelectionMode('stamp')}
+            className={`${selectionMode === 'stamp' ? 'bg-blue-500' : ''}`}
+            disabled={!!stampBox}
+          >
+            {stampBox ? '✓ Stamp' : 'Select Stamp'}
+          </Button>
+          {(signatureBox || stampBox) && (
+            <Button
+              type="button"
+              onClick={() => {
+                setSignatureBox(null);
+                setStampBox(null);
+              }}
+              className="bg-rose-500"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+        
+        {/* Simple Zoom Controls */}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
+            className="px-4 py-2 bg-slate-700"
+            disabled={zoom <= 0.5}
+          >
+            −
+          </Button>
+          <span className="text-sm font-medium text-white min-w-[3.5rem] text-center">{Math.round(zoom * 100)}%</span>
+          <Button
+            type="button"
+            onClick={() => setZoom(Math.min(3, zoom + 0.25))}
+            className="px-4 py-2 bg-slate-700"
+            disabled={zoom >= 3}
+          >
+            +
+          </Button>
+        </div>
       </div>
       
       {selectionMode && (
-        <div className="mb-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
-          <p className="text-sm text-blue-400">
-            Click and drag to select the {selectionMode} region on the document below
+        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <p className="text-sm text-blue-300">
+            👉 Click and drag on the document to select the {selectionMode} area
           </p>
         </div>
       )}
       
-      <div className="relative border border-white/10 rounded-xl overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          className="max-w-full h-auto"
-          style={{ display: 'block' }}
-        />
-        <canvas
-          ref={overlayCanvasRef}
-          className="absolute top-0 left-0 max-w-full h-auto cursor-crosshair"
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        />
+      {/* Canvas Container */}
+      <div 
+        ref={containerRef}
+        className="relative border-2 border-slate-600 rounded-lg overflow-auto bg-slate-900 max-h-[70vh]"
+      >
+        <div className="inline-block min-w-full">
+          <canvas
+            ref={canvasRef}
+            className="w-auto h-auto max-w-none"
+            style={{ 
+              display: 'block',
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left'
+            }}
+          />
+          <canvas
+            ref={overlayCanvasRef}
+            className="absolute top-0 left-0 w-auto h-auto max-w-none cursor-crosshair pointer-events-auto"
+            style={{ 
+              transform: `scale(${zoom})`,
+              transformOrigin: 'top left'
+            }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          />
+        </div>
       </div>
       
-      {(signatureBox || stampBox) && (
-        <div className="mt-4">
-          <Button type="button" onClick={handleComplete} className="w-full">
-            Continue with Selected ROIs
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        {(signatureBox || stampBox) && (
+          <Button type="button" onClick={handleComplete} className="flex-1">
+            ✓ Continue
           </Button>
-        </div>
-      )}
-    </Card>
+        )}
+        <Button type="button" onClick={() => handleComplete({ signature: null, stamp: null })} className="flex-1 bg-slate-600">
+          Skip This Step
+        </Button>
+      </div>
+    </div>
   );
 };
 

@@ -32,7 +32,6 @@ const VerificationResultCard = ({ result }) => {
     { label: 'Organization Verified', passed: authorityChecks.organizationVerified, category: 'authority' },
   ];
 
-  const passedChecks = allChecks.filter(c => c.passed === true).length;
   const totalChecks = allChecks.filter(c => c.passed !== undefined).length;
   const allPassed = result.verified === true;
 
@@ -42,8 +41,8 @@ const VerificationResultCard = ({ result }) => {
   return (
     <Card className="space-y-5 p-6">
       {/* Overall Status */}
-      <div className="text-center pb-4 border-b border-white/10">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-3" style={{
+      <div className="flex items-center justify-center gap-4 pb-4 border-b border-white/10">
+        <div className="flex items-center justify-center w-20 h-20 rounded-full" style={{
           background: allPassed ? 'radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%)' : 'radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0) 70%)'
         }}>
           {allPassed ? (
@@ -57,9 +56,6 @@ const VerificationResultCard = ({ result }) => {
           )}
         </div>
         <Badge tone={statusTone} className="text-sm px-4 py-2">{statusLabel}</Badge>
-        <p className="text-xs text-slate-400 mt-3">
-          {passedChecks} of {totalChecks} verification checks passed
-        </p>
       </div>
 
       {/* Document Info */}

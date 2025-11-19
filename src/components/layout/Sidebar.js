@@ -14,6 +14,7 @@ import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
 
@@ -25,16 +26,19 @@ const navConfig = [
   { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/superadmin', roles: ['superadmin'] },
   { label: 'Organizations', icon: <BusinessOutlinedIcon />, path: '/dashboard/superadmin/organizations', roles: ['superadmin'] },
   { label: 'All Users', icon: <PeopleOutlinedIcon />, path: '/dashboard/superadmin/users', roles: ['superadmin'] },
+  { label: 'All Audit Logs', icon: <AssignmentOutlinedIcon />, path: '/dashboard/superadmin/audit', roles: ['superadmin'] },
   { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/superadmin/analytics', roles: ['superadmin'] },
   
   // Admin features (also available to superadmin)
   { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/admin', roles: ['admin'] },
   { label: 'Upload Document', icon: <UploadFileOutlinedIcon />, path: '/dashboard/admin/upload', roles: ['admin', 'superadmin'] },
   { label: 'Documents', icon: <DescriptionOutlinedIcon />, path: '/dashboard/admin/documents', roles: ['admin', 'superadmin'] },
+  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, path: '/dashboard/admin/verify', roles: ['admin', 'superadmin'] },
   { label: 'Generate QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/admin/qr/generate', roles: ['admin', 'superadmin'] },
   { label: 'Workflow', icon: <HubOutlinedIcon />, path: '/dashboard/admin/workflow', roles: ['admin', 'superadmin'] },
   { label: 'Revocations', icon: <BlockOutlinedIcon />, path: '/dashboard/admin/revocations', roles: ['admin', 'superadmin'] },
   { label: 'Org Users', icon: <PeopleOutlinedIcon />, path: '/dashboard/admin/users', roles: ['admin'] },
+  { label: 'Org Audit Logs', icon: <AssignmentOutlinedIcon />, path: '/dashboard/admin/audit', roles: ['admin', 'superadmin'] },
   { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/admin/analytics', roles: ['admin'] },
   
   // User/Verifier only

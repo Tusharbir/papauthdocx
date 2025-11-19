@@ -34,7 +34,7 @@ const UploadDocument = () => {
 
   const handleSubmit = (values) => {
     const payload = {
-      documentId: values.docId,
+      docId: values.docId,
       type: values.type,
       metadata: {
         holderName: values.holderName,
@@ -48,7 +48,8 @@ const UploadDocument = () => {
         signatureHash: values.signatureHash,
         stampHash: values.stampHash,
         merkleRoot: values.merkleRoot
-      }
+      },
+      // For superadmin: can optionally specify targetOrgId, defaults to -1 (system-wide)\n      // For admin: will use their own orgId automatically\n      targetOrgId: values.targetOrgId || undefined
     };
     mutation.mutate(payload);
   };

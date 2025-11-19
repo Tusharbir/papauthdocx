@@ -33,7 +33,7 @@ const SuperAdminDashboard = () => {
 
   return (
     <div>
-      <PageHeader title="Superadmin Control Plane" subtitle="Global visibility across tenants" />
+      <PageHeader title="Superadmin Dashboard" subtitle="Global visibility across tenants" />
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label} className="p-6">

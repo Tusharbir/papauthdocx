@@ -5,12 +5,18 @@ import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import useAuthStore from '../../store/authStore';
+import useUIStore from '../../store/uiStore';
 import axiosInstance from '../../api/axiosInstance';
 
 const OrgUsersList = () => {
+  const mode = useUIStore((state) => state.mode);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const user = useAuthStore((state) => state.user);
+
+  const inputClass = mode === 'dark'
+    ? 'border-white/10 bg-white/5 text-white'
+    : 'border-slate-300 bg-white text-slate-900';
 
   // Fetch users in admin's organization
   const { data: users = [], isLoading } = useQuery({
@@ -44,13 +50,13 @@ const OrgUsersList = () => {
       />
       <div className="mb-4 flex flex-wrap gap-3">
         <input
-          className="w-full max-w-sm rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm"
+          className={`w-full max-w-sm rounded-full border px-4 py-2 text-sm ${inputClass}`}
           placeholder="Search by name or email"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         <select
-          className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm"
+          className={`rounded-full border px-4 py-2 text-sm ${inputClass}`}
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
         >

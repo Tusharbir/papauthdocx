@@ -17,6 +17,7 @@ import SuperAdminDashboard from './pages/Dashboard/SuperAdminDashboard';
 import AdminDashboard from './pages/Dashboard/AdminDashboard';
 import UserDashboard from './pages/Dashboard/UserDashboard';
 import UploadDocument from './pages/Documents/UploadDocument';
+import DocumentsList from './pages/Documents/DocumentsList';
 import DocumentDetails from './pages/Documents/DocumentDetails';
 import VerifyDocument from './pages/Verification/VerifyDocument';
 import StateManager from './pages/Workflow/StateManager';
@@ -28,6 +29,8 @@ import OrganizationList from './pages/Organizations/OrganizationList';
 import OrganizationAdmins from './pages/Organizations/OrganizationAdmins';
 import AllUsersList from './pages/Users/AllUsersList';
 import OrgUsersList from './pages/Users/OrgUsersList';
+import AllAuditLogs from './pages/Audit/AllAuditLogs';
+import OrgAuditLogs from './pages/Audit/OrgAuditLogs';
 import DocumentVersions from './pages/Documents/DocumentVersions';
 import RevokeVersion from './pages/Documents/RevokeVersion';
 import AuthLayout from './layouts/AuthLayout';
@@ -62,19 +65,22 @@ const App = () => {
               <Route path="/dashboard/superadmin/organizations" element={<OrganizationList />} />
               <Route path="/dashboard/superadmin/organizations/:id/admins" element={<OrganizationAdmins />} />
               <Route path="/dashboard/superadmin/users" element={<AllUsersList />} />
+              <Route path="/dashboard/superadmin/audit" element={<AllAuditLogs />} />
               <Route path="/dashboard/superadmin/analytics" element={<AnalyticsDashboard />} />
             </Route>
             
             {/* Admin Routes - Superadmin also has access */}
             <Route element={<RoleRoute allowedRoles={['admin', 'superadmin']} />}>
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
-              <Route path="/dashboard/admin/documents" element={<DocumentDetails />} />
+              <Route path="/dashboard/admin/documents" element={<DocumentsList />} />
               <Route path="/dashboard/admin/upload" element={<UploadDocument />} />
+              <Route path="/dashboard/admin/documents/:docId" element={<DocumentDetails />} />
               <Route path="/dashboard/admin/documents/:docId/versions" element={<DocumentVersions />} />
               <Route path="/dashboard/admin/documents/:docId/revoke/:versionNumber" element={<RevokeVersion />} />
-              <Route path="/dashboard/admin/documents/:documentId" element={<DocumentDetails />} />
+              <Route path="/dashboard/admin/verify" element={<VerifyDocument />} />
               <Route path="/dashboard/admin/analytics" element={<AnalyticsDashboard />} />
               <Route path="/dashboard/admin/users" element={<OrgUsersList />} />
+              <Route path="/dashboard/admin/audit" element={<OrgAuditLogs />} />
               <Route path="/dashboard/admin/qr/generate" element={<GenerateQR />} />
               <Route path="/dashboard/admin/workflow" element={<StateManager />} />
               <Route path="/dashboard/admin/revocations" element={<RevokeDocument />} />
