@@ -28,21 +28,24 @@ const Modal = ({ open, onClose, children, className, size = 'md' }) => {
     full: 'max-w-[90vw]'
   };
 
+  // Try to find main content area for portal target
+  const portalTarget = document.querySelector('main') || document.body;
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-8 overflow-y-auto"
+          className="fixed top-0 left-0 w-full h-full flex flex-col justify-center items-center p-4 md:p-8"
           initial="hidden"
           animate="visible"
           exit="hidden"
           variants={backdrop}
         >
-          <div className={`absolute inset-0 ${backdropClass}`} onClick={onClose} />
+          <div className={`fixed inset-0 ${backdropClass}`} onClick={onClose} />
           <motion.div
             variants={panel}
-            className={cn('relative z-10 w-full rounded-3xl border p-6 backdrop-blur-xl my-8 max-h-[calc(100vh-4rem)]', sizeClasses[size], panelClass, className)}
+            className={cn(' max-w-2xl w-full rounded-3xl border backdrop-blur-xl max-h-[70vh] overflow-hidden flex flex-col', panelClass, className)}
           >
+            <div className="flex-shrink-0 p-6 pr-16">
             <button
               onClick={onClose}
               className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10"
@@ -52,12 +55,15 @@ const Modal = ({ open, onClose, children, className, size = 'md' }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
-            {children}
+            </div>
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              {children}
+            </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    portalTarget
   );
 };
 

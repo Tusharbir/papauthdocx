@@ -53,14 +53,10 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
     setStampBox(null);
 
     try {
-      // First, extract text and image hashes only
+      // Extract text and image hashes (signature/stamp optional)
       const extractedHashes = await extractAllHashes(pdfFile, null, null);
       
       setHashes(extractedHashes);
-      
-      // Render PDF to canvas for ROI selection
-      const canvas = await renderPDFToCanvas(pdfFile);
-      setPdfCanvas(canvas);
       
       // Auto-generate docId from filename if not set
       if (!metadata.docId) {
@@ -68,8 +64,15 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
         setMetadata(prev => ({ ...prev, docId }));
       }
       
-      // Show ROI selector modal
-      setShowROISelector(true);
+      // Try to render PDF for optional ROI selection
+      try {
+        const canvas = await renderPDFToCanvas(pdfFile);
+        setPdfCanvas(canvas);
+        setShowROISelector(true);
+      } catch (canvasErr) {
+        console.warn('Could not render PDF for ROI selection:', canvasErr);
+        // Continue without ROI selector - user can still upload
+      }
     } catch (err) {
       console.error('Hash extraction error:', err);
       setError(err.message || 'Failed to extract document hashes. Please try again.');
@@ -78,19 +81,22 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
     }
   };
 
-  const handleROIComplete = async (signature, stamp) => {
+  const handleROIComplete = async (regions) => {
+    const signature = regions?.signature;
+    const stamp = regions?.stamp;
+    
     setSignatureBox(signature);
     setStampBox(stamp);
     setShowROISelector(false);
     
-    // Re-extract hashes with ROI boxes
-    if (file) {
+    // Only re-extract if user selected ROI regions
+    if ((signature || stamp) && file) {
       setProcessing(true);
       setError(null);
       try {
         const extractedHashes = await extractAllHashes(file, signature, stamp);
         setHashes(extractedHashes);
-        console.log('ROI hashes extracted successfully:', extractedHashes);
+        console.log('ROI hashes extracted successfully');
       } catch (err) {
         console.error('ROI hash extraction error:', err);
         setError(`Failed to extract signature/stamp hashes: ${err.message}`);
@@ -351,13 +357,15 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
     </form>
 
     {/* ROI Selector Modal */}
-    <Modal open={showROISelector} onClose={handleSkipROI}>
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>
-        <p className="text-sm text-slate-400">
-          Draw boxes around the signature and official stamp for enhanced verification. 
-          This step is optional - you can skip if the document has no signature/stamp.
-        </p>
+    <Modal open={showROISelector} onClose={handleSkipROI} size="full">
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-bold text-white mb-2">Select Signature & Stamp Regions (Optional)</h3>
+          <p className="text-sm text-slate-400">
+            Draw boxes around the signature and official stamp for enhanced verification. 
+            This step is optional - you can skip if the document has no signature/stamp.
+          </p>
+        </div>
         
         {pdfCanvas && (
           <ROISelector

@@ -176,23 +176,41 @@ export async function extractROIHash(canvas, boundingBox) {
       throw new Error('Canvas or bounding box is missing');
     }
     
-    if (boundingBox.width <= 0 || boundingBox.height <= 0) {
-      throw new Error('Invalid bounding box dimensions');
+    // Ensure all values are valid numbers and integers
+    const x = Math.max(0, Math.floor(Number(boundingBox.x) || 0));
+    const y = Math.max(0, Math.floor(Number(boundingBox.y) || 0));
+    const width = Math.max(1, Math.floor(Number(boundingBox.width) || 0));
+    const height = Math.max(1, Math.floor(Number(boundingBox.height) || 0));
+    
+    // Validate dimensions
+    if (width <= 0 || height <= 0) {
+      throw new Error('Invalid bounding box dimensions: width and height must be positive');
     }
     
-    const context = canvas.getContext('2d');
-    const roi = context.getImageData(
-      Math.round(boundingBox.x),
-      Math.round(boundingBox.y),
-      Math.round(boundingBox.width),
-      Math.round(boundingBox.height)
-    );
+    // Ensure coordinates are within canvas bounds
+    const maxX = Math.min(x, canvas.width - 1);
+    const maxY = Math.min(y, canvas.height - 1);
+    const maxWidth = Math.min(width, canvas.width - maxX);
+    const maxHeight = Math.min(height, canvas.height - maxY);
     
-    console.log('ROI extracted:', { 
-      x: Math.round(boundingBox.x), 
-      y: Math.round(boundingBox.y), 
-      width: Math.round(boundingBox.width), 
-      height: Math.round(boundingBox.height),
+    if (maxWidth <= 0 || maxHeight <= 0) {
+      throw new Error('Bounding box is outside canvas bounds');
+    }
+    
+    console.log('ROI parameters:', { 
+      original: boundingBox,
+      validated: { x: maxX, y: maxY, width: maxWidth, height: maxHeight },
+      canvasSize: { width: canvas.width, height: canvas.height }
+    });
+    
+    const context = canvas.getContext('2d');
+    const roi = context.getImageData(maxX, maxY, maxWidth, maxHeight);
+    
+    console.log('ROI extracted successfully:', { 
+      x: maxX, 
+      y: maxY, 
+      width: maxWidth, 
+      height: maxHeight,
       dataLength: roi.data.length
     });
     
@@ -211,22 +229,23 @@ export async function extractROIHash(canvas, boundingBox) {
  */
 export async function renderPDFToCanvas(pdfFile, scale = 300 / 72) {
   try {
+    console.log('renderPDFToCanvas: file type', pdfFile.type, 'size', pdfFile.size);
     const arrayBuffer = await pdfFile.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    console.log('PDF loaded, numPages:', pdf.numPages);
     const page = await pdf.getPage(1);
-    
+    console.log('PDF page loaded:', page);
     const viewport = page.getViewport({ scale });
-    
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    
-    await page.render({
+    const renderTask = page.render({
       canvasContext: context,
       viewport: viewport
-    }).promise;
-    
+    });
+    await renderTask.promise;
+    console.log('PDF page rendered to canvas:', canvas.width, canvas.height);
     return canvas;
   } catch (error) {
     console.error('PDF rendering failed:', error);
