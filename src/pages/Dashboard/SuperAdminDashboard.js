@@ -12,6 +12,16 @@ import Badge from '../../components/ui/Badge';
 
 const SuperAdminDashboard = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
+  const mode = useUIStore((state) => state.mode);
+  const isDark = mode === 'dark';
+
+  const mutedText = isDark ? 'text-slate-300/80' : 'text-slate-500';
+  const subtleText = isDark ? 'text-slate-400' : 'text-slate-600';
+  const strongText = isDark ? 'text-white' : 'text-slate-900';
+  const cardDivider = isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-slate-50';
+  const axisColor = isDark ? '#94a3b8' : '#94a3b8';
+  const gridColor = isDark ? '#334155' : '#e2e8f0';
+
   useEffect(() => {
     setBreadcrumbs(['PapDocAuthX', 'Superadmin']);
   }, [setBreadcrumbs]);
@@ -53,12 +63,12 @@ const SuperAdminDashboard = () => {
       <div className="grid gap-4 md:grid-cols-3">
         {stats.map((stat) => (
           <Card key={stat.label} className="p-6">
-            <p className="text-sm uppercase tracking-[0.4em] text-blue-300">{stat.label}</p>
+            <p className={`text-sm uppercase tracking-[0.4em] ${isDark ? 'text-blue-300' : 'text-blue-600/70'}`}>{stat.label}</p>
             <p className="mt-2 text-4xl font-semibold">
               {(stat.label === 'Admins' && usersLoading) || (stat.label === 'Documents' && analyticsLoading) ? (
-                <span className="text-slate-400">...</span>
+                <span className={subtleText}>...</span>
               ) : (
-                stat.value
+                <span className={strongText}>{stat.value}</span>
               )}
             </p>
           </Card>
@@ -71,10 +81,10 @@ const SuperAdminDashboard = () => {
       )}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Card className="p-6 lg:col-span-2">
-          <p className="text-sm text-slate-300/80">Document Activity (Last 7 Days)</p>
+          <p className={`text-sm ${mutedText}`}>Document Activity (Last 7 Days)</p>
           {analyticsLoading ? (
             <div className="h-64 flex items-center justify-center">
-              <div className="text-slate-400">Loading activity data...</div>
+              <div className={subtleText}>Loading activity data...</div>
             </div>
           ) : activityData.length > 0 ? (
             <div className="h-64">
@@ -94,12 +104,17 @@ const SuperAdminDashboard = () => {
                       <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="date" stroke="#94a3b8" />
-                  <YAxis stroke="#94a3b8" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="date" stroke={axisColor} />
+                  <YAxis stroke={axisColor} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                    labelStyle={{ color: '#e2e8f0' }}
+                    contentStyle={{
+                      backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                      border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+                      borderRadius: '8px',
+                      color: isDark ? '#e2e8f0' : '#0f172a',
+                    }}
+                    labelStyle={{ color: isDark ? '#e2e8f0' : '#0f172a' }}
                   />
                   <Legend />
                   <Area 
@@ -139,13 +154,16 @@ const SuperAdminDashboard = () => {
           )}
         </Card>
         <Card className="p-6">
-          <p className="text-sm text-slate-300/80">Recent org activity</p>
+          <p className={`text-sm ${mutedText}`}>Recent org activity</p>
           <div className="mt-4 space-y-3 text-sm">
             {orgs.slice(0, 5).map((org) => (
-              <div key={org.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <div
+                key={org.id}
+                className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${cardDivider}`}
+              >
                 <div>
-                  <p className="font-semibold text-white">{org.name}</p>
-                  <p className="text-xs text-slate-400">{org.slug}</p>
+                  <p className={`font-semibold ${strongText}`}>{org.name}</p>
+                  <p className={`text-xs ${subtleText}`}>{org.slug}</p>
                 </div>
                 <Badge tone="info">{org.type}</Badge>
               </div>
@@ -154,11 +172,11 @@ const SuperAdminDashboard = () => {
         </Card>
       </div>
       <Card className="mt-6 p-6">
-        <p className="text-sm text-slate-300/80">Top organizations</p>
+        <p className={`text-sm ${mutedText}`}>Top organizations</p>
         <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-300">
+          <table className="w-full text-left text-sm">
             <thead>
-              <tr className="text-xs uppercase tracking-[0.4em] text-slate-500">
+              <tr className={`text-xs uppercase tracking-[0.4em] ${subtleText}`}>
                 <th className="py-2">Name</th>
                 <th className="py-2">Type</th>
                 <th className="py-2">Slug</th>
@@ -167,11 +185,11 @@ const SuperAdminDashboard = () => {
             </thead>
             <tbody>
               {orgs.slice(0, 6).map((org) => (
-                <tr key={org.id} className="border-t border-white/5">
-                  <td className="py-3 font-semibold text-white">{org.name}</td>
-                  <td className="py-3 text-slate-400">{org.type}</td>
-                  <td className="py-3 text-slate-400">{org.slug}</td>
-                  <td className="py-3 text-right text-slate-200">{org.adminCount || 2}</td>
+                <tr key={org.id} className={`border-t ${isDark ? 'border-white/5' : 'border-slate-200'}`}>
+                  <td className={`py-3 font-semibold ${strongText}`}>{org.name}</td>
+                  <td className={`py-3 ${subtleText}`}>{org.type}</td>
+                  <td className={`py-3 ${subtleText}`}>{org.slug}</td>
+                  <td className={`py-3 text-right ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{org.adminCount || 2}</td>
                 </tr>
               ))}
             </tbody>

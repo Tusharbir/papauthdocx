@@ -5,14 +5,14 @@ import useUIStore from '../store/uiStore';
 
 const DashboardLayout = () => {
   const mode = useUIStore((state) => state.mode);
-  const shellClasses = mode === 'dark' ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-900';
-  const contentBg =
-    mode === 'dark'
-      ? 'bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950'
-      : 'bg-gradient-to-b from-slate-50 via-white to-slate-100';
+  const isDark = mode === 'dark';
+  const shellClasses = `dashboard-shell min-h-screen w-full ${isDark ? 'text-slate-100' : 'text-slate-900'}`;
+  const contentBg = isDark
+    ? 'bg-gradient-to-b from-[#0b1220] via-[#0f172a] to-[#0b1220]'
+    : 'bg-gradient-to-b from-[#f5f7fb] via-white to-[#eef2ff]';
 
   return (
-    <div className={`min-h-screen w-full ${shellClasses}`}>
+    <div className={shellClasses}>
       <div className="flex">
         <Sidebar />
         <div className="flex min-h-screen flex-1 flex-col">

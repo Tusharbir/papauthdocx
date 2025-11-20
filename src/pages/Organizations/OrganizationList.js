@@ -77,13 +77,17 @@ const OrganizationList = () => {
             <Card key={org.id} className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg font-semibold text-white">{org.name}</p>
-                  <p className="text-xs text-slate-400">{org.slug}</p>
+                  <p className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>{org.name}</p>
+                  <p className={`text-xs ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>{org.slug}</p>
                 </div>
                 <Badge tone="info">{org.type}</Badge>
               </div>
               <div className="mt-4 flex gap-2">
-                <Button className="flex-1" variant="secondary" onClick={() => window.location.assign(`/dashboard/superadmin/organizations/${org.id}/admins`)}>
+                <Button
+                  className="flex-1"
+                  variant="secondary"
+                  onClick={() => window.location.assign(`/dashboard/superadmin/organizations/${org.id}/admins`)}
+                >
                   Manage admins
                 </Button>
                 <Button className="flex-1" variant="ghost" onClick={() => setDetail(org)}>
