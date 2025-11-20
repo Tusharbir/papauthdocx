@@ -57,33 +57,42 @@ export async function extractImageHash(pdfFile, scale = 300 / 72) {
   try {
     const arrayBuffer = await pdfFile.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    const page = await pdf.getPage(1); // First page only
-    
-    const viewport = page.getViewport({ scale });
-    
-    // Create canvas
+    // Render all pages vertically so the hash represents the full document
+    const renderedPages = await Promise.all(
+      Array.from({ length: pdf.numPages }, async (_, idx) => {
+        const page = await pdf.getPage(idx + 1);
+        const viewport = page.getViewport({ scale });
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = viewport.width;
+        pageCanvas.height = viewport.height;
+        const pageCtx = pageCanvas.getContext('2d');
+        await page.render({ canvasContext: pageCtx, viewport }).promise;
+        return { canvas: pageCanvas, width: viewport.width, height: viewport.height };
+      })
+    );
+
+    const totalHeight = renderedPages.reduce((sum, p) => sum + p.height, 0);
+    const maxWidth = Math.max(...renderedPages.map((p) => p.width));
+
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    canvas.width = maxWidth;
+    canvas.height = totalHeight;
+
+    let y = 0;
+    renderedPages.forEach((p) => {
+      context.drawImage(p.canvas, 0, y);
+      y += p.height;
+    });
     
-    // Render PDF page to canvas
-    await page.render({
-      canvasContext: context,
-      viewport: viewport
-    }).promise;
-    
-    // Get image data and convert to grayscale
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
     
-    // Convert to grayscale
     for (let i = 0; i < pixels.length; i += 4) {
       const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
       pixels[i] = pixels[i + 1] = pixels[i + 2] = gray;
     }
     
-    // Compute hash of pixel data
     return await computeSHA256(pixels);
   } catch (error) {
     console.error('Image extraction failed:', error);
@@ -233,19 +242,33 @@ export async function renderPDFToCanvas(pdfFile, scale = 300 / 72) {
     const arrayBuffer = await pdfFile.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     console.log('PDF loaded, numPages:', pdf.numPages);
-    const page = await pdf.getPage(1);
-    console.log('PDF page loaded:', page);
-    const viewport = page.getViewport({ scale });
+
+    const renderedPages = await Promise.all(
+      Array.from({ length: pdf.numPages }, async (_, idx) => {
+        const page = await pdf.getPage(idx + 1);
+        const viewport = page.getViewport({ scale });
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = viewport.width;
+        pageCanvas.height = viewport.height;
+        const pageCtx = pageCanvas.getContext('2d');
+        await page.render({ canvasContext: pageCtx, viewport }).promise;
+        return { canvas: pageCanvas, width: viewport.width, height: viewport.height };
+      })
+    );
+
+    const totalHeight = renderedPages.reduce((sum, p) => sum + p.height, 0);
+    const maxWidth = Math.max(...renderedPages.map((p) => p.width));
+
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    const renderTask = page.render({
-      canvasContext: context,
-      viewport: viewport
+    canvas.width = maxWidth;
+    canvas.height = totalHeight;
+    let y = 0;
+    renderedPages.forEach((p) => {
+      context.drawImage(p.canvas, 0, y);
+      y += p.height;
     });
-    await renderTask.promise;
-    console.log('PDF page rendered to canvas:', canvas.width, canvas.height);
+    console.log('PDF pages rendered to canvas:', canvas.width, canvas.height);
     return canvas;
   } catch (error) {
     console.error('PDF rendering failed:', error);

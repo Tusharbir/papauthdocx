@@ -125,6 +125,25 @@ const DocsPage = () => {
   const [activeTab, setActiveTab] = useState('user-guide'); // 'user-guide' | 'technical' | 'presentation'
   const [showFullscreen, setShowFullscreen] = useState(false);
   const fullscreenRef = useRef(null);
+  const [deckLoaded, setDeckLoaded] = useState(false);
+
+  // Preload presentation in background to reduce visible delay
+  useEffect(() => {
+    if (!presentationUrl) return;
+    // Keep a hidden iframe alive to warm the deck and reuse browser cache.
+    const iframe = document.createElement('iframe');
+    iframe.src = presentationUrl;
+    iframe.loading = 'eager';
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.opacity = '0';
+    iframe.style.pointerEvents = 'none';
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.onload = () => setDeckLoaded(true);
+    document.body.appendChild(iframe);
+    // Persist the iframe; no cleanup so cache stays warm during session.
+  }, [presentationUrl]);
 
   useEffect(() => {
     // When toggling fullscreen mode, request/exit browser fullscreen for immersive view.
@@ -264,12 +283,20 @@ const DocsPage = () => {
                   </button>
                 </div>
               </div>
-              <div className="mt-6 w-full min-h-[80vh] overflow-hidden rounded-3xl border border-white/10 bg-black/60 shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+              <div className="mt-6 w-full min-h-[80vh] overflow-hidden rounded-3xl border border-white/10 bg-black/60 shadow-[0_20px_60px_rgba(0,0,0,0.4)] relative">
+                {!deckLoaded && (
+                  <div className="absolute inset-0 grid place-items-center text-slate-400 text-sm">
+                    Loading presentation...
+                  </div>
+                )}
                 <iframe
                   title="PapDocAuthX Presentation"
                   src={presentationUrl}
                   className="h-[80vh] w-full"
                   allowFullScreen
+                  loading="eager"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  onLoad={() => setDeckLoaded(true)}
                 />
               </div>
             </Card>
@@ -294,12 +321,23 @@ const DocsPage = () => {
                 Close
               </button>
             </div>
-            <div className="m-3 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black">
+            <div className="m-3 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black relative">
+              {!deckLoaded && (
+                <div className="absolute inset-0 grid place-items-center text-slate-300 text-sm">
+                  <div className="flex items-center gap-3 rounded-full bg-white/5 px-4 py-2 border border-white/10 shadow-lg">
+                    <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+                    <span>Loading presentation... warming inline viewer</span>
+                  </div>
+                </div>
+              )}
               <iframe
                 title="PapDocAuthX Presentation Full"
                 src={presentationUrl}
                 className="h-full w-full"
                 allowFullScreen
+                loading="eager"
+                referrerPolicy="no-referrer-when-downgrade"
+                onLoad={() => setDeckLoaded(true)}
               />
             </div>
           </div>

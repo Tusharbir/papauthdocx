@@ -12,7 +12,7 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [currentBox, setCurrentBox] = useState(null);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.5);
   
   const canvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
@@ -143,26 +143,26 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
   if (!canvas) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-full flex-col space-y-4">
       {/* Control Buttons */}
-      <div className="flex flex-wrap gap-3 items-center justify-between">
-        <div className="flex gap-3">
-          <Button
-            type="button"
-            onClick={() => setSelectionMode('signature')}
-            className={`${selectionMode === 'signature' ? 'bg-green-500' : ''}`}
-            disabled={!!signatureBox}
-          >
-            {signatureBox ? '✓ Signature' : 'Select Signature'}
-          </Button>
-          <Button
-            type="button"
-            onClick={() => setSelectionMode('stamp')}
-            className={`${selectionMode === 'stamp' ? 'bg-blue-500' : ''}`}
-            disabled={!!stampBox}
-          >
-            {stampBox ? '✓ Stamp' : 'Select Stamp'}
-          </Button>
+        <div className="flex flex-wrap gap-3 items-center justify-between">
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              onClick={() => setSelectionMode('signature')}
+              className={`${selectionMode === 'signature' ? 'bg-green-500' : ''}`}
+              disabled={!!signatureBox}
+            >
+              {signatureBox ? '✓ Signature' : 'Select Signature'}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => setSelectionMode('stamp')}
+              className={`${selectionMode === 'stamp' ? 'bg-blue-500' : ''}`}
+              disabled={!!stampBox}
+            >
+              {stampBox ? '✓ Stamp' : 'Select Stamp'}
+            </Button>
           {(signatureBox || stampBox) && (
             <Button
               type="button"
@@ -210,7 +210,7 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
       {/* Canvas Container */}
       <div 
         ref={containerRef}
-        className="relative border-2 border-slate-600 rounded-lg overflow-auto bg-slate-900 max-h-[70vh]"
+        className="relative border-2 border-slate-600 rounded-lg overflow-auto bg-slate-900 flex-1 no-scrollbar"
       >
         <div className="inline-block min-w-full">
           <canvas
@@ -219,7 +219,8 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
             style={{ 
               display: 'block',
               transform: `scale(${zoom})`,
-              transformOrigin: 'top left'
+              transformOrigin: 'top center',
+              margin: '0 auto'
             }}
           />
           <canvas
@@ -227,7 +228,9 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
             className="absolute top-0 left-0 w-auto h-auto max-w-none cursor-crosshair pointer-events-auto"
             style={{ 
               transform: `scale(${zoom})`,
-              transformOrigin: 'top left'
+              transformOrigin: 'top center',
+              marginLeft: '50%',
+              translate: '-50% 0'
             }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -238,7 +241,7 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
       </div>
       
       {/* Action Buttons */}
-      <div className="flex gap-3">
+      <div className="sticky bottom-0 left-0 right-0 flex gap-3 bg-slate-900/70 backdrop-blur pt-4 pb-1">
         {(signatureBox || stampBox) && (
           <Button type="button" onClick={handleComplete} className="flex-1">
             ✓ Continue

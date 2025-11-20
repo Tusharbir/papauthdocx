@@ -36,3 +36,12 @@
     transform: rotate(360deg);
   }
 }
+
+/* Hide scrollbars wherever "no-scrollbar" is applied */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

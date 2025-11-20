@@ -13,7 +13,7 @@ const panel = {
   visible: { opacity: 1, scale: 1, y: 0 },
 };
 
-const Modal = ({ open, onClose, children, className, size = 'md' }) => {
+const Modal = ({ open, onClose, children, className, size = 'md', maxHeight = '70vh' }) => {
   const mode = useUIStore((state) => state.mode);
   const backdropClass = mode === 'dark' ? 'bg-slate-950/70' : 'bg-slate-900/50';
   const panelClass = mode === 'dark' 
@@ -25,8 +25,10 @@ const Modal = ({ open, onClose, children, className, size = 'md' }) => {
     md: 'max-w-lg',
     lg: 'max-w-3xl',
     xl: 'max-w-5xl',
-    full: 'max-w-[90vw]'
+    full: 'max-w-[80vw]'
   };
+
+  const widthClass = sizeClasses[size] || sizeClasses.md;
 
   // Try to find main content area for portal target
   const portalTarget = document.querySelector('main') || document.body;
@@ -43,7 +45,8 @@ const Modal = ({ open, onClose, children, className, size = 'md' }) => {
           <div className={`fixed inset-0 ${backdropClass}`} onClick={onClose} />
           <motion.div
             variants={panel}
-            className={cn(' max-w-2xl w-full rounded-3xl border backdrop-blur-xl max-h-[70vh] overflow-hidden flex flex-col', panelClass, className)}
+            style={{ maxHeight }}
+            className={cn('w-full rounded-3xl border backdrop-blur-xl overflow-hidden flex flex-col', widthClass, panelClass, className)}
           >
             <div className="flex-shrink-0 p-6 pr-16">
             <button
@@ -56,7 +59,7 @@ const Modal = ({ open, onClose, children, className, size = 'md' }) => {
               </svg>
             </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-6 pb-6">
+            <div className="flex-1 overflow-hidden px-6 pb-6">
               {children}
             </div>
           </motion.div>

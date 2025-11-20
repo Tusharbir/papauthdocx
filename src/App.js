@@ -44,6 +44,7 @@ const App = () => {
   const location = useLocation();
   const mode = useUIStore((state) => state.mode);
   const theme = useMemo(() => buildTheme(mode), [mode]);
+  const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
 
   useEffect(() => {
     // Sync mode to the DOM so raw CSS can react to it as well
@@ -55,6 +56,30 @@ const App = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
+
+  // Prefetch presentation deck early so Docs tab loads faster
+  useEffect(() => {
+    if (!presentationUrl) return;
+    try {
+      const deckOrigin = new URL(presentationUrl).origin;
+      const head = document.head || document.documentElement;
+
+      const preconnect = document.createElement('link');
+      preconnect.rel = 'preconnect';
+      preconnect.href = deckOrigin;
+      preconnect.crossOrigin = 'anonymous';
+      head.appendChild(preconnect);
+
+      const prefetch = document.createElement('link');
+      prefetch.rel = 'prefetch';
+      prefetch.href = presentationUrl;
+      prefetch.as = 'document';
+      head.appendChild(prefetch);
+    } catch (err) {
+      // Swallow errors to avoid impacting app startup
+      console.warn('Presentation prefetch skipped:', err);
+    }
+  }, [presentationUrl]);
 
   const routes = (
     <AnimatePresence mode="wait">
