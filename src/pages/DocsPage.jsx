@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Card from '../components/ui/Card';
+
+// Default to shared Gamma URL but allow override via env for flexibility.
+const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
 
 const userGuides = [
   {
@@ -119,7 +122,21 @@ const faqs = [
 ];
 
 const DocsPage = () => {
-  const [activeTab, setActiveTab] = useState('user-guide'); // 'user-guide' or 'technical'
+  const [activeTab, setActiveTab] = useState('user-guide'); // 'user-guide' | 'technical' | 'presentation'
+  const [showFullscreen, setShowFullscreen] = useState(false);
+  const fullscreenRef = useRef(null);
+
+  useEffect(() => {
+    // When toggling fullscreen mode, request/exit browser fullscreen for immersive view.
+    if (showFullscreen) {
+      const el = fullscreenRef.current || document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {});
+      }
+    } else if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  }, [showFullscreen]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50">
@@ -154,6 +171,16 @@ const DocsPage = () => {
             }`}
           >
             ⚙️ Technical Docs
+          </button>
+          <button
+            onClick={() => setActiveTab('presentation')}
+            className={`px-6 py-2 rounded-xl text-sm font-medium transition-all ${
+              activeTab === 'presentation'
+                ? 'bg-indigo-500 text-white'
+                : 'bg-white/5 text-slate-400 hover:bg-white/10'
+            }`}
+          >
+            📽️ Presentation
           </button>
         </div>
 
@@ -212,7 +239,72 @@ const DocsPage = () => {
             <div id="api" />
           </section>
         )}
+
+        {/* Presentation Tab */}
+        {activeTab === 'presentation' && (
+          <section className="space-y-6">
+            <Card className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 border-white/5 shadow-2xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-indigo-300/80">Live Deck</p>
+                  <h2 className="text-xl font-semibold text-indigo-200">Final Presentation</h2>
+                  <p className="text-sm text-slate-300/90 mt-1">
+                    Slide deck covering features, architecture, and demo flow.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-200">
+                    Interactive • Inline viewer
+                  </div>
+                  <button
+                    onClick={() => setShowFullscreen(true)}
+                    className="rounded-xl border border-indigo-400/30 bg-indigo-500/20 px-3 py-1.5 text-xs font-medium text-indigo-100 hover:bg-indigo-500/30"
+                  >
+                    Expand to Full Page
+                  </button>
+                </div>
+              </div>
+              <div className="mt-6 w-full min-h-[80vh] overflow-hidden rounded-3xl border border-white/10 bg-black/60 shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+                <iframe
+                  title="PapDocAuthX Presentation"
+                  src={presentationUrl}
+                  className="h-[80vh] w-full"
+                  allowFullScreen
+                />
+              </div>
+            </Card>
+          </section>
+        )}
       </main>
+      {showFullscreen && (
+        <div
+          ref={fullscreenRef}
+          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-sm px-[100px] py-[40px]"
+        >
+          <div className="flex h-full w-full flex-col rounded-3xl border border-white/10 bg-slate-950/70 shadow-2xl">
+            <div className="flex items-center justify-between gap-3 border-b border-white/5 px-6 py-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-indigo-300/80">Live Deck</p>
+                <h3 className="text-lg font-semibold text-indigo-100">PapDocAuthX Presentation</h3>
+              </div>
+              <button
+                onClick={() => setShowFullscreen(false)}
+                className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 hover:bg-white/10"
+              >
+                Close
+              </button>
+            </div>
+            <div className="m-3 flex-1 overflow-hidden rounded-2xl border border-white/10 bg-black">
+              <iframe
+                title="PapDocAuthX Presentation Full"
+                src={presentationUrl}
+                className="h-full w-full"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
   );

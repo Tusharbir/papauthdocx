@@ -27,8 +27,7 @@ const RegisterVerifyPanel = () => {
   <motion.section
     className="w-full px-8 lg:px-20 py-24 bg-gradient-to-b from-[#01030c] via-[#050b1a] to-[#01030c]"
     initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.4 }}
+    animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.6 }}
   >
     <div className="max-w-[1600px] mx-auto grid gap-12 lg:grid-cols-[1.2fr_0.8fr] items-center">

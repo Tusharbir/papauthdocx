@@ -51,6 +51,11 @@ const App = () => {
     document.body.dataset.theme = mode;
   }, [mode]);
 
+  // Ensure navigation between pages resets scroll to the top to avoid landing mid-page.
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
+
   const routes = (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
