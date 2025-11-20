@@ -570,8 +570,8 @@ const VerifyDocument = () => {
       )}
       
       {/* ROI Selector Modal */}
-      <Modal open={showROISelector} onClose={handleSkipROI}>
-        <div className="space-y-4">
+      <Modal open={showROISelector} onClose={handleSkipROI} size="full" maxHeight="80vh">
+        <div className="flex h-full flex-col space-y-4">
           <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>
           <p className="text-sm text-slate-400">
             Draw boxes around the signature and official stamp for enhanced verification.

@@ -49,18 +49,21 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
       
       setHashes(extractedHashes);
       
-      // Render PDF to canvas for ROI selection
-      const canvas = await renderPDFToCanvas(pdfFile);
-      setPdfCanvas(canvas);
-      
       // Auto-generate docId from filename if not set
       if (!metadata.docId) {
         const docId = `DOC_${Date.now()}_${pdfFile.name.replace(/\.[^/.]+$/, '').toUpperCase().replace(/[^A-Z0-9]/g, '_')}`;
         setMetadata(prev => ({ ...prev, docId }));
       }
       
-      // Show ROI selector modal
-      setShowROISelector(true);
+      // Try to render PDF to canvas for ROI selection (optional feature)
+      try {
+        const canvas = await renderPDFToCanvas(pdfFile);
+        setPdfCanvas(canvas);
+        setShowROISelector(true);
+      } catch (canvasErr) {
+        console.warn('Could not render PDF for ROI selection:', canvasErr);
+        // Continue without ROI selector - user can still upload
+      }
     } catch (err) {
       console.error('Hash extraction error:', err);
       setError(err.message || 'Failed to extract document hashes. Please try again.');
@@ -69,13 +72,14 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
     }
   };
 
-  const handleROIComplete = async (signature, stamp) => {
+  const handleROIComplete = async (regions) => {
+    const { signature, stamp } = regions || {};
     setSignatureBox(signature);
     setStampBox(stamp);
     setShowROISelector(false);
     
-    // Re-extract hashes with ROI boxes
-    if (file) {
+    // Re-extract hashes with ROI boxes only if user selected regions
+    if (file && (signature || stamp)) {
       setProcessing(true);
       try {
         const extractedHashes = await extractAllHashes(file, signature, stamp);
