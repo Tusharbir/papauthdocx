@@ -18,7 +18,7 @@ const ScanQR = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'QR', 'Scan']);
+    setBreadcrumbs(['PapDocAuthX', 'QR', 'Scan']);
   }, [setBreadcrumbs]);
 
   const mutation = useMutation({

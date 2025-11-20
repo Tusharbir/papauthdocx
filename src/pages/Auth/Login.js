@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Box, Button, Container, Paper, Stack, TextField, Typography, Link } from '@mui/material';
+import { Button, Paper, Stack, TextField, Typography, Link } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { motion } from 'framer-motion';
@@ -16,7 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setBreadcrumbs(['PapDocAuthX+', 'Auth', 'Login']);
+    setBreadcrumbs(['PapDocAuthX', 'Auth', 'Login']);
   }, [setBreadcrumbs]);
 
   const mutation = useMutation({
@@ -42,53 +42,60 @@ const Login = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        background: 'linear-gradient(135deg, #0F172A, #1D3B5D)',
-      }}
-    >
-      <Container maxWidth="sm">
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
-          <Paper sx={{ p: 5, borderRadius: 4 }}>
-            <Stack spacing={3}>
-              <div>
-                <Typography variant="h4" fontWeight={700} gutterBottom>
-                  Secure Login
-                </Typography>
-                <Typography color="text.secondary">Authenticate to access PapDocAuthX+ control plane.</Typography>
-              </div>
-              <Stack component="form" spacing={3} onSubmit={handleSubmit}>
-                <TextField
-                  label="Enterprise Email"
-                  fullWidth
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
-                <TextField
-                  label="Password"
-                  fullWidth
-                  type="password"
-                  required
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                />
-                <Button type="submit" variant="contained" size="large" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Validating…' : 'Login'}
-                </Button>
-              </Stack>
-              <Link component={RouterLink} to="/register" color="primary">
-                Request access
-              </Link>
-            </Stack>
-          </Paper>
-        </motion.div>
-      </Container>
-    </Box>
+    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          width: '100%',
+          p: { xs: 3, sm: 4 },
+          borderRadius: 3,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          background: (theme) => (theme.palette.mode === 'dark' ? 'rgba(15,23,42,0.85)' : '#ffffff'),
+          boxShadow: (theme) =>
+            theme.palette.mode === 'dark'
+              ? '0 28px 80px rgba(0,0,0,0.45)'
+              : '0 28px 80px rgba(15,23,42,0.18)',
+        }}
+      >
+        <Stack spacing={3}>
+          <div>
+            <Typography variant="h4" fontWeight={700} gutterBottom>
+              Secure Login
+            </Typography>
+            <Typography color="text.secondary">Authenticate to access PapDocAuthX control plane.</Typography>
+          </div>
+          <Stack component="form" spacing={2.5} onSubmit={handleSubmit}>
+            <TextField
+              label="Enterprise Email"
+              fullWidth
+              type="email"
+              required
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+            <TextField
+              label="Password"
+              fullWidth
+              type="password"
+              required
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+            <Button type="submit" variant="contained" size="large" fullWidth disabled={mutation.isPending}>
+              {mutation.isPending ? 'Validating…' : 'Login'}
+            </Button>
+          </Stack>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Link component={RouterLink} to="/contact" color="primary">
+              Request access
+            </Link>
+            <Link component={RouterLink} to="/" color="primary">
+              Home Page
+            </Link>
+          </Stack>
+        </Stack>
+      </Paper>
+    </motion.div>
   );
 };
 

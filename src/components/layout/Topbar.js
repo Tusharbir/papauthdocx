@@ -16,7 +16,7 @@ const Topbar = () => {
   const logout = useAuthStore((state) => state.logout);
   const { enqueueSnackbar } = useSnackbar();
 
-  const initials = useMemo(() => user?.name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'PX', [user]);
+  const initials = useMemo(() => user?.fullName?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'PX', [user]);
 
   const handleLogout = () => {
     logout();
@@ -39,14 +39,23 @@ const Topbar = () => {
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', minHeight: 88 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, minWidth: 0, mr: 2 }}>
           {breadcrumbs.map((crumb, index) => (
-            <Stack direction="row" spacing={1} alignItems="center" key={`${crumb}-${index}`}>
-              <Typography variant="body2" color="text.secondary">
+            <Stack direction="row" spacing={1} alignItems="center" key={`${crumb}-${index}`} sx={{ minWidth: 0 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ 
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: { xs: '80px', sm: '120px', md: '200px' }
+                }}
+              >
                 {crumb}
               </Typography>
               {index < breadcrumbs.length - 1 && (
-                <Typography variant="body2" color="text.disabled">
+                <Typography variant="body2" color="text.disabled" sx={{ flexShrink: 0 }}>
                   /
                 </Typography>
               )}
@@ -61,7 +70,7 @@ const Topbar = () => {
           <Stack direction="row" spacing={1} alignItems="center">
             <Avatar sx={{ bgcolor: 'primary.main', color: 'white' }}>{initials}</Avatar>
             <Stack>
-              <Typography variant="subtitle2">{user?.name || 'PapDoc User'}</Typography>
+              <Typography variant="subtitle2">{user?.fullName || 'PapDoc User'}</Typography>
               <Chip size="small" label={role?.toUpperCase()} color="primary" variant="outlined" sx={{ borderRadius: 2 }} />
             </Stack>
           </Stack>

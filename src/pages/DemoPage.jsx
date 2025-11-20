@@ -14,7 +14,7 @@ const DemoPage = () => (
     <main className="max-w-[1400px] mx-auto px-6 py-16 space-y-16">
       <section>
         <p className="text-sm text-blue-300 uppercase tracking-[0.3em] mb-3">Live demo briefing</p>
-        <h1 className="text-4xl font-semibold mb-4">PapDocAuthX+ showcase</h1>
+        <h1 className="text-4xl font-semibold mb-4">PapDocAuthX showcase</h1>
         <p className="text-slate-300/90 max-w-3xl">
           Launch the dashboard, upload sample documents, and present tamper proofing to stakeholders. Every action writes to the audit store so you can narrate database behavior in real time.
         </p>
@@ -26,6 +26,14 @@ const DemoPage = () => (
             <p className="text-sm text-slate-300/90">{step.detail}</p>
           </div>
         ))}
+      </section>
+
+      <section className="max-w-2xl mx-auto text-center">
+        <p className="text-sm text-slate-400 mb-4">Ready to try a real flow?</p>
+        <div className="flex items-center justify-center gap-4">
+          <a href="/login" className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold">Open dashboard (login)</a>
+          <a href="/verify" className="px-6 py-3 rounded-full border border-white/10 text-sm">Try verification</a>
+        </div>
       </section>
     </main>
     <RegisterVerifyPanel />

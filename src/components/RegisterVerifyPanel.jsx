@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import useAuthStore from '../store/authStore';
 
 const steps = [
   {
@@ -19,7 +20,10 @@ const steps = [
   },
 ];
 
-const RegisterVerifyPanel = () => (
+const RegisterVerifyPanel = () => {
+  const isAuthenticated = useAuthStore((state) => !!state.token);
+  
+  return (
   <motion.section
     className="w-full px-8 lg:px-20 py-24 bg-gradient-to-b from-[#01030c] via-[#050b1a] to-[#01030c]"
     initial={{ opacity: 0, y: 30 }}
@@ -57,34 +61,35 @@ const RegisterVerifyPanel = () => (
       <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
         <p className="text-sm text-slate-300 mb-4">Try the zero-trust flow:</p>
         <div className="space-y-4">
-          <Link
-            to="/documents/upload"
-            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 text-white text-sm font-medium"
-          >
-            Upload document
-            <span className="text-emerald-300">→</span>
-          </Link>
+          {isAuthenticated && (
+            <Link
+              to="/documents/upload"
+              className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/10 text-white text-sm font-medium hover:bg-white/15 transition-colors"
+            >
+              Register document
+              <span className="text-emerald-300">→</span>
+            </Link>
+          )}
           <Link
             to="/verify"
-            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 text-white/90 text-sm font-medium"
+            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 text-white/90 text-sm font-medium hover:bg-white/10 transition-colors"
           >
             Verify hashes
             <span className="text-blue-300">→</span>
           </Link>
-          <Link
-            to="/qr/scan"
-            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 text-white/90 text-sm font-medium"
-          >
-            Scan QR code
-            <span className="text-amber-300">→</span>
-          </Link>
         </div>
+        {!isAuthenticated && (
+          <p className="text-xs text-slate-400 mt-6 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+            💡 <Link to="/login" className="text-blue-400 underline">Login</Link> to register documents. Public users can verify documents only.
+          </p>
+        )}
         <p className="text-[12px] text-slate-400 mt-6">
-          Need credentials? Use the demo login seeded in the README or mint a mock verifier from the Register screen.
+          For institutional access, <Link to="/contact" className="text-emerald-400 underline">request access</Link> to onboard your organization.
         </p>
       </div>
     </div>
   </motion.section>
-);
+  );
+};
 
 export default RegisterVerifyPanel;

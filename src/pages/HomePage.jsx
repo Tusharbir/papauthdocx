@@ -1,10 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import analyticsApi from '../api/analyticsApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import RegisterVerifyPanel from '../components/RegisterVerifyPanel';
 import Card from '../components/ui/Card';
+import useAuthStore from '../store/authStore';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -39,7 +42,7 @@ const useCases = [
   },
   {
     title: 'Enterprises',
-    text: 'Authenticate employment letters, NDAs and contracts with a tamper score and version chain.',
+    text: 'Authenticate employment letters, NDAs and contracts with tamper score and version chain.',
     emoji: '🏢',
     img: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
@@ -47,44 +50,68 @@ const useCases = [
 
 const features = [
   {
-    title: 'Zero-knowledge flows',
-    text: 'OCR, hashing and feature extraction happen entirely on the client.',
+    title: 'Client-Side Hash Extraction',
+    text: 'PDF.js extracts text, Canvas API rasterizes images—all processing happens in your browser.',
     icon: '🛡️',
   },
   {
-    title: 'Multi-modal document DNA',
-    text: 'Text, layout, image ROIs, stamps, seals — combined into a unique fingerprint.',
+    title: 'Multimodal Document Fingerprinting',
+    text: 'Text hash + Image hash + Signature ROI + Stamp ROI = 4 independent SHA-256 hashes per document.',
     icon: '🧬',
   },
   {
-    title: 'Version chains & audit trails',
-    text: 'Each update creates a new version hashed to the previous one.',
+    title: 'Merkle Tree Integrity',
+    text: 'Binary Merkle tree combines all hashes—single-bit changes are cryptographically detectable.',
     icon: '🔗',
   },
   {
-    title: 'Polyglot persistence',
-    text: 'MongoDB for document metadata + SQL for structured audit logs.',
+    title: 'Polyglot Persistence',
+    text: 'PostgreSQL for relational data & audit logs + MongoDB for document versions & hash parts.',
     icon: '🗄️',
   },
   {
-    title: 'Tamper scoring engine',
-    text: 'Compare similarity percentages for text, layout and visual ROIs.',
+    title: 'Blockchain-Inspired Versioning',
+    text: 'Each version links to previous via prevVersionHash—creates immutable document evolution chain.',
     icon: '📊',
   },
   {
-    title: 'QR-based verification checkpoints',
-    text: 'Every document includes a secure QR linking to its verification endpoint.',
+    title: 'QR-Based Public Verification',
+    text: 'Every approved document generates QR code—anyone can verify without authentication.',
     icon: '🔳',
   },
 ];
 
 const securityFeatures = [
-  { title: 'Zero-knowledge uploads', text: 'Hashes stay client-side; backend only receives fingerprints.' },
-  { title: 'JWT + RBAC', text: 'Superadmin, admin, verifier scopes enforced on every request.' },
-  { title: 'Audit hash chain', text: 'Every action logs to SQL with immutable linkage to Mongo versions.' },
+  { title: 'Zero-Document-Upload Model', text: 'Documents never uploaded to server—only cryptographic fingerprints (SHA-256 hashes) transmitted.' },
+  { title: 'Web Crypto API + RBAC', text: 'Browser-native SHA-256 hashing + JWT authentication with Superadmin/Admin/User role enforcement.' },
+  { title: 'Tamper-Evident Audit Chain', text: 'PostgreSQL audit logs with chained hashes prevent tampering even by database administrators.' },
 ];
 
 function HomePage() {
+  const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => !!state.token);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role) {
+      const roleRoutes = {
+        superadmin: '/dashboard/superadmin',
+        admin: '/dashboard/admin',
+        verifier: '/dashboard/user',
+        user: '/dashboard/user',
+      };
+      navigate(roleRoutes[user.role] || '/dashboard/user', { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['analytics', 'summary'],
+    queryFn: analyticsApi.getSummary,
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  const totalDocuments = analytics?.totalDocuments ?? analytics?.total_docs ?? 0;
+
   return (
     <div className="min-h-screen w-full bg-slate-950 text-slate-50">
       <Navbar />
@@ -103,13 +130,12 @@ function HomePage() {
               Privacy-first document authentication for institutions
             </div>
             <h1 className="text-4xl lg:text-6xl font-bold leading-tight mb-6 max-w-3xl">
-              Stop trusting screenshots.
+              Zero-Document-Upload
               <br />
-              <span className="text-slate-300">Start trusting verified documents.</span>
+              <span className="text-slate-300">Document Authentication System</span>
             </h1>
             <p className="text-lg text-slate-300/90 max-w-2xl mb-10 leading-relaxed">
-              PapDocAuthX+ helps universities, governments and enterprises verify certificates, IDs and contracts with a zero-knowledge, multi-modal hashing pipeline.
-              All analysis runs locally in the browser — only cryptographic fingerprints ever leave the device.
+              PapDocAuthX implements revolutionary client-side cryptographic fingerprinting. Your documents never leave your device—we only store SHA-256 hashes extracted from text, images, signatures, and stamps. Enterprise-grade security for universities, governments, and HR departments worldwide.
             </p>
             <div className="flex flex-wrap gap-4 mb-6">
               <Link
@@ -128,11 +154,15 @@ function HomePage() {
             <div className="flex flex-wrap gap-6 text-sm text-slate-300/80">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                Zero-knowledge by design
+                Client-side hash extraction (PDF.js + Tesseract.js)
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-400" />
-                Multi-modal hashing (text, layout, images, signatures)
+                4 independent SHA-256 hashes + Merkle tree
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-400" />
+                Blockchain-inspired version chains
               </div>
             </div>
           </div>
@@ -141,8 +171,8 @@ function HomePage() {
               <h3 className="text-xl font-semibold mb-6">Built for high stakes</h3>
               <div className="grid grid-cols-3 gap-8 text-center">
                 <div>
-                  <div className="text-4xl font-bold text-emerald-300 icon-float">0</div>
-                  <div className="text-sm text-slate-400">Document content stored</div>
+                  <div className="text-4xl font-bold text-emerald-300 icon-float">{analyticsLoading ? '…' : totalDocuments}</div>
+                  <div className="text-sm text-slate-400">Total documents</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold text-blue-300 icon-float">4+</div>
@@ -174,7 +204,7 @@ function HomePage() {
         variants={fadeUp}
       >
         <div className="max-w-[1800px] mx-auto">
-          <h2 className="text-3xl font-semibold mb-4">Where PapDocAuthX+ fits in</h2>
+          <h2 className="text-3xl font-semibold mb-4">Where PapDocAuthX fits in</h2>
           <p className="text-slate-300/85 text-lg max-w-4xl mb-12">
             The platform focuses on high-value, frequently forged documents. Perfect for academic projects, research demonstrations, and real-world deployment.
           </p>
@@ -217,12 +247,12 @@ function HomePage() {
         </div>
         <div className="max-w-[1800px] mx-auto space-y-16 relative z-10">
           <div>
-            <h2 className="text-3xl font-semibold mb-4">How PapDocAuthX+ works</h2>
+            <h2 className="text-3xl font-semibold mb-4">How PapDocAuthX Works</h2>
             <div className="grid gap-6 md:grid-cols-3 text-sm text-slate-300/85">
               {[
-                'Client-side hashing extracts text/layout/signature/stamp fingerprints.',
-                'Merkle roots + version chains anchor each update to the audit log.',
-                'Verifiers compare hashes via QR, manual entry, or API checks.',
+                '1. Client extracts text (PDF.js), rasterizes image (Canvas), computes 4 SHA-256 hashes',
+                '2. Merkle root computed client-side, version hash links to previous—creates immutable chain',
+                '3. Public verification via QR codes, API endpoints—9 independent cryptographic checks',
               ].map((step, index) => (
                 <div key={step} className="rounded-3xl border border-white/10 bg-white/5 p-5">
                   <p className="text-xs uppercase tracking-[0.4em] text-blue-300">Step {index + 1}</p>
@@ -232,9 +262,9 @@ function HomePage() {
             </div>
           </div>
           <div>
-            <h2 className="text-3xl font-semibold mb-4">Why multimodal hashing?</h2>
+            <h2 className="text-3xl font-semibold mb-4">Why 4 Independent Hashes?</h2>
             <p className="text-lg text-slate-300/85 max-w-4xl mb-10">
-              Screenshots are easy to fake. PapDocAuthX+ produces four independent hashes per document so even subtle tampering is caught.
+              A single hash is easily forged. PapDocAuthX requires attackers to simultaneously replicate exact text content, pixel-perfect appearance, authentic signatures, AND institutional stamps—exponentially increasing forgery complexity.
             </p>
             <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
               {features.map((feature) => (
@@ -272,7 +302,7 @@ function HomePage() {
           <div>
             <h2 className="text-3xl font-semibold mb-4">Security features</h2>
             <p className="text-lg text-slate-300/85 mb-6">
-              Built for regulated orgs—everything from auth to storage respects zero-trust principles and Merkle-verifiable audits.
+              Inspired by DigiLocker, National Student Clearinghouse, and blockchain-based verification systems—production-grade cryptographic architecture for document authentication.
             </p>
             <div className="space-y-4">
               {securityFeatures.map((item) => (
@@ -290,7 +320,7 @@ function HomePage() {
               Run a public check without logging in. Perfect for alumni, HR teams, or agencies validating a credential.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold" to="/verify-public">
+              <Link className="px-6 py-2 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold" to="/verify">
                 Verify now
               </Link>
               <Link className="px-6 py-2 rounded-full border border-white/20 text-sm" to="/qr/DOC-2024-001">

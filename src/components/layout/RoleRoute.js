@@ -1,5 +1,4 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
 import useAuthStore from '../../store/authStore';
 
 const RoleRoute = ({ allowedRoles = [] }) => {
@@ -10,13 +9,14 @@ const RoleRoute = ({ allowedRoles = [] }) => {
   }
 
   if (allowedRoles.length && !allowedRoles.includes(role)) {
-    return (
-      <Box p={6} textAlign="center">
-        <Typography variant="h5" color="text.secondary">
-          You do not have access to this surface.
-        </Typography>
-      </Box>
-    );
+    // Redirect to their appropriate dashboard
+    const dashboardMap = {
+      superadmin: '/dashboard/superadmin',
+      admin: '/dashboard/admin',
+      user: '/dashboard/user',
+      verifier: '/dashboard/user',
+    };
+    return <Navigate to={dashboardMap[role] || '/login'} replace />;
   }
 
   return <Outlet />;

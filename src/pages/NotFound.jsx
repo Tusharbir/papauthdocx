@@ -9,7 +9,7 @@ const NotFound = () => (
       <p className="text-sm uppercase tracking-[0.4em] text-emerald-300">404</p>
       <h1 className="text-4xl font-semibold">Surface not found</h1>
       <p className="text-slate-300/90 max-w-md">
-        The page you requested isn&apos;t wired into the PapDocAuthX+ mesh yet. Return to the overview or jump into the demo.
+        The page you requested isn&apos;t wired into the PapDocAuthX mesh yet. Return to the overview or jump into the demo.
       </p>
       <div className="flex gap-4">
         <Link to="/" className="px-5 py-2 rounded-full bg-white/10 text-sm font-medium">Back home</Link>

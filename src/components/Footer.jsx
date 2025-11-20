@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom';
 
+const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX';
+const SECURITY_EMAIL = process.env.REACT_APP_SECURITY_EMAIL || 'security@papdocauthx.com';
+// Optional external URLs — set in environment if you have real services. Leave empty to hide links.
+const STATUS_URL = process.env.REACT_APP_STATUS_URL || '';
+const TRUST_URL = process.env.REACT_APP_TRUST_URL || '';
+
 const Footer = () => (
   <footer className="bg-slate-950 border-t border-white/10">
     <div className="max-w-[1400px] mx-auto px-6 py-12 grid gap-10 md:grid-cols-4 text-sm text-slate-300">
       <div>
-        <p className="font-semibold text-white mb-3">PapDocAuthX+</p>
+        <p className="font-semibold text-white mb-3">{APP_NAME}</p>
         <p className="text-slate-400 text-sm">
           Zero-trust document verification stack with Merkle visibility, QR checkpoints, and automated workflows.
         </p>
@@ -20,15 +26,19 @@ const Footer = () => (
       <div>
         <p className="font-medium text-white mb-3">Resources</p>
         <div className="flex flex-col gap-2">
-          <a href="mailto:security@papdocauthx.com" className="hover:text-white">
-            security@papdocauthx.com
+          <a href={`mailto:${SECURITY_EMAIL}`} className="hover:text-white">
+            {SECURITY_EMAIL}
           </a>
-          <a href="https://status.papdocauthx.com" className="hover:text-white">
-            Status page
-          </a>
-          <a href="https://trust.papdocauthx.com" className="hover:text-white">
-            Trust center
-          </a>
+          {STATUS_URL ? (
+            <a href={STATUS_URL} className="hover:text-white" target="_blank" rel="noreferrer">
+              Status page
+            </a>
+          ) : null}
+          {TRUST_URL ? (
+            <a href={TRUST_URL} className="hover:text-white" target="_blank" rel="noreferrer">
+              Trust center
+            </a>
+          ) : null}
         </div>
       </div>
       <div>
@@ -41,7 +51,7 @@ const Footer = () => (
       </div>
     </div>
     <div className="border-t border-white/5 py-4 text-center text-xs text-slate-500">
-      © {new Date().getFullYear()} PapDocAuthX+. All rights reserved.
+      © {new Date().getFullYear()} {APP_NAME}. All rights reserved.
     </div>
   </footer>
 );

@@ -11,6 +11,9 @@
 # production
 /build
 
+# PDF.js worker (auto-copied from node_modules)
+/public/pdf.worker.min.mjs
+
 # misc
 .DS_Store
 .env.local
@@ -21,3 +24,4 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.env

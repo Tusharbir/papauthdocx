@@ -1,24 +1,33 @@
 import axiosInstance from './axiosInstance';
 
 export const documentApi = {
-  uploadVersion: async (payload) => {
-    const { data } = await axiosInstance.post('/api/document/upload-version', payload);
-    return data;
+  // Get all documents (org-filtered)
+  getAll: async () => {
+    const { data } = await axiosInstance.get('/api/documents');
+    return data.documents;
   },
-  getDetails: async (documentId) => {
-    const { data } = await axiosInstance.get(`/api/document/${documentId}`);
-    return data;
-  },
+
+  // Alias for getAll - used by SuperAdminDashboard
   listUserDocs: async () => {
-    const { data } = await axiosInstance.get('/api/document');
-    return data;
+    const { data } = await axiosInstance.get('/api/documents');
+    return data.documents;
   },
-  listVersions: async (documentId) => {
-    const { data } = await axiosInstance.get(`/api/document/${documentId}/versions`);
-    return data;
+
+  // Get document details with all versions
+  getDetails: async (docId) => {
+    const { data } = await axiosInstance.get(`/api/documents/${docId}`);
+    return data.document;
   },
-  revokeVersion: async ({ documentId, versionNumber, reason }) => {
-    const { data } = await axiosInstance.post('/api/document/revoke', { documentId, versionNumber, reason });
+
+  // Get all versions for a document
+  listVersions: async (docId) => {
+    const { data } = await axiosInstance.get(`/api/documents/${docId}/versions`);
+    return data.versions;
+  },
+
+  // Upload new document version
+  uploadVersion: async (payload) => {
+    const { data } = await axiosInstance.post('/api/documents/upload-version', payload);
     return data;
   },
 };

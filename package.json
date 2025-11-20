@@ -1,6 +1,6 @@
 {
-  "name": "papauthdocx",
-  "version": "0.1.0",
+  "name": "papdocauthx-plus-frontend",
+  "version": "2.0.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -14,9 +14,11 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.9",
     "framer-motion": "^12.23.24",
+    "html5-qrcode": "^2.3.8",
+    "jsqr": "^1.4.0",
     "jwt-decode": "^4.0.0",
     "notistack": "^3.0.1",
-    "html5-qrcode": "^2.3.8",
+    "pdfjs-dist": "^5.4.394",
     "qrcode.react": "^4.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -24,14 +26,17 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "recharts": "^2.12.7",
+    "tesseract.js": "^6.0.1",
     "web-vitals": "^2.1.4",
     "zustand": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
+    "dev": "npm run start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "node -e \"require('fs').copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs', 'public/pdf.worker.min.mjs')\""
   },
   "eslintConfig": {
     "extends": [
