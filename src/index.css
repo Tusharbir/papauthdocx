@@ -4,13 +4,76 @@
 
 :root {
   scroll-behavior: smooth;
-  background-color: #0B1220;
+  --bg-base-light: #f5f7fb;
+  --bg-muted-light: #e9eef7;
+  --text-primary-light: #0f172a;
+  --bg-base-dark: #0b1220;
+  --bg-muted-dark: #0f172a;
+  --text-primary-dark: #e2e8f0;
+  --surface-light: #ffffff;
+  --surface-dark: #0f172a;
+  --border-light: #d8e0ec;
+  --border-dark: rgba(255,255,255,0.12);
+  --muted-light: #52607a;
+  --muted-dark: #cbd5e1;
+
+  --app-bg: var(--bg-base-light);
+  --app-surface: var(--surface-light);
+  --app-card: #f2f6ff;
+  --app-border: var(--border-light);
+  --app-muted: var(--muted-light);
+  --text-primary: var(--text-primary-light);
+
+  background-color: var(--app-bg);
+  color: var(--text-primary);
+}
+
+:root[data-theme='dark'] {
+  --app-bg: var(--bg-base-dark);
+  --app-surface: var(--surface-dark);
+  --app-card: #0f172a;
+  --app-border: var(--border-dark);
+  --app-muted: var(--muted-dark);
+  --text-primary: var(--text-primary-dark);
+
+  background-color: var(--app-bg);
+  color: var(--text-primary);
 }
 
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background-color: #0B1220;
+  background-color: inherit;
+  color: inherit;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.dashboard-shell {
+  background-color: var(--app-bg);
+  color: var(--text-primary);
+}
+
+.dashboard-shell select,
+.dashboard-shell .dashboard-input {
+  background-color: var(--app-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  min-height: 44px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.dashboard-shell select:focus,
+.dashboard-shell .dashboard-input:focus {
+  outline: none;
+  border-color: #0066ff;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.16);
+}
+
+.dashboard-shell select option {
+  background-color: var(--app-surface);
+  color: var(--text-primary);
 }
 
 @keyframes float-soft {
