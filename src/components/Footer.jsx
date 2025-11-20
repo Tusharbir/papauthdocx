@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 
 const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX';
 const SECURITY_EMAIL = process.env.REACT_APP_SECURITY_EMAIL || 'security@papdocauthx.com';
-const STATUS_URL = process.env.REACT_APP_STATUS_URL || 'https://status.papdocauthx.com';
-const TRUST_URL = process.env.REACT_APP_TRUST_URL || 'https://trust.papdocauthx.com';
+// Optional external URLs — set in environment if you have real services. Leave empty to hide links.
+const STATUS_URL = process.env.REACT_APP_STATUS_URL || '';
+const TRUST_URL = process.env.REACT_APP_TRUST_URL || '';
 
 const Footer = () => (
   <footer className="bg-slate-950 border-t border-white/10">
@@ -28,12 +29,16 @@ const Footer = () => (
           <a href={`mailto:${SECURITY_EMAIL}`} className="hover:text-white">
             {SECURITY_EMAIL}
           </a>
-          <a href={STATUS_URL} className="hover:text-white">
-            Status page
-          </a>
-          <a href={TRUST_URL} className="hover:text-white">
-            Trust center
-          </a>
+          {STATUS_URL ? (
+            <a href={STATUS_URL} className="hover:text-white" target="_blank" rel="noreferrer">
+              Status page
+            </a>
+          ) : null}
+          {TRUST_URL ? (
+            <a href={TRUST_URL} className="hover:text-white" target="_blank" rel="noreferrer">
+              Trust center
+            </a>
+          ) : null}
         </div>
       </div>
       <div>

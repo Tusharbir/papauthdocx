@@ -33,6 +33,9 @@ const AllAuditLogs = () => {
 
   const logs = logsData?.logs || [];
 
+  // Get unique action types from actual data
+  const uniqueActions = [...new Set(logs.map(log => log.action))];
+
   // Filter logs
   const filtered = logs.filter((log) => {
     const matchesSearch = 
@@ -55,7 +58,7 @@ const AllAuditLogs = () => {
       UPLOAD: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       APPROVE: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
       REVOKE: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-      CRYPTO_CHECK: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      VERIFIED: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
     };
     return badges[action] || 'bg-slate-500/20 text-slate-400 border-slate-500/30';
   };
@@ -141,10 +144,9 @@ const AllAuditLogs = () => {
             className={`rounded-2xl border px-4 py-3 text-sm transition-colors focus:border-blue-400 focus:ring-blue-400 ${inputClass}`}
           >
             <option value="all">All Actions</option>
-            <option value="UPLOAD">Upload</option>
-            <option value="APPROVE">Approve</option>
-            <option value="REVOKE">Revoke</option>
-            <option value="CRYPTO_CHECK">Crypto Check</option>
+            {uniqueActions.map((action) => (
+              <option key={action} value={action}>{action}</option>
+            ))}
           </select>
           <div className="flex items-center text-sm text-slate-400">
             Showing {filtered.length} of {logs.length} logs

@@ -77,13 +77,6 @@ const RegisterVerifyPanel = () => {
             Verify hashes
             <span className="text-blue-300">→</span>
           </Link>
-          <Link
-            to="/qr/scan"
-            className="w-full inline-flex items-center justify-between px-4 py-3 rounded-2xl bg-white/5 text-white/90 text-sm font-medium hover:bg-white/10 transition-colors"
-          >
-            Scan QR code
-            <span className="text-amber-300">→</span>
-          </Link>
         </div>
         {!isAuthenticated && (
           <p className="text-xs text-slate-400 mt-6 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">

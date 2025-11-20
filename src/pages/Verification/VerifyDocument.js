@@ -148,7 +148,7 @@ const VerifyDocument = () => {
           const scales = [1, 2, 0.5];
           let code = null;
           
-          for (const scale of scales) {
+            for (const scale of scales) {
             const width = img.width * scale;
             const height = img.height * scale;
             canvas.width = width;
@@ -163,7 +163,7 @@ const VerifyDocument = () => {
             });
             
             if (code) {
-              console.log(`✓ QR detected in file at scale ${scale}x`);
+              console.log(`QR detected in file at scale ${scale}x`);
               break;
             }
           }
@@ -265,13 +265,13 @@ const VerifyDocument = () => {
             });
             
             if (code) {
-              console.log(`✓ QR detected at scale ${scale}x`);
+            console.log(`QR detected at scale ${scale}x`);
               break;
             }
           }
 
           if (code) {
-            console.log('=== QR CODE SCAN SUCCESS ===');
+            console.log('QR code scan success');
             console.log('Full QR data:', code.data);
             console.log('Data length:', code.data.length);
             console.log('Data type:', typeof code.data);
@@ -281,7 +281,7 @@ const VerifyDocument = () => {
             
             if (urlMatch) {
               const [, scannedDocId, versionHash] = urlMatch;
-              console.log('✓ Matched URL format');
+              console.log('Matched URL format');
               console.log('  - DocId:', scannedDocId);
               console.log('  - Hash:', versionHash);
               console.log('  - Hash length:', versionHash.length);
@@ -290,7 +290,7 @@ const VerifyDocument = () => {
               setQrData({ docId: scannedDocId, versionHash });
               enqueueSnackbar('QR code decoded successfully!', { variant: 'success' });
             } else {
-              console.log('❌ URL format match failed');
+              console.log('URL format match failed');
               console.log('Expected format: papdocauthx://DOC_ID/VERSION_HASH');
               console.log('Got:', code.data);
               
@@ -314,7 +314,7 @@ const VerifyDocument = () => {
               }
             }
           } else {
-            console.log('❌ QR code detection failed at all scales');
+              console.log('QR code detection failed at all scales');
             enqueueSnackbar('No QR code detected. Try: 1) Download QR directly (not screenshot) 2) Use Manual Entry mode with the QR data text 3) Ensure good image quality', { variant: 'warning' });
           }
         };
@@ -552,9 +552,9 @@ const VerifyDocument = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className={isAuthenticated ? "" : "min-h-screen bg-slate-950 text-white"}>
       {isAuthenticated ? (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           {renderVerificationContent()}
         </motion.div>
       ) : (

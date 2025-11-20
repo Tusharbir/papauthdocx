@@ -47,7 +47,8 @@ const Login = () => {
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
-        background: 'linear-gradient(135deg, #0F172A, #1D3B5D)',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
       }}
     >
       <Container maxWidth="sm">
@@ -81,9 +82,14 @@ const Login = () => {
                   {mutation.isPending ? 'Validating…' : 'Login'}
                 </Button>
               </Stack>
-              <Link component={RouterLink} to="/contact" color="primary">
-                Request access
-              </Link>
+              <Stack direction="row" spacing={2}>
+                <Link component={RouterLink} to="/contact" color="primary">
+                  Request access
+                </Link>
+                <Link component={RouterLink} to="/" color="primary">
+                  Home Page
+                </Link>
+              </Stack>
             </Stack>
           </Paper>
         </motion.div>

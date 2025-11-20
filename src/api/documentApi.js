@@ -7,6 +7,12 @@ export const documentApi = {
     return data.documents;
   },
 
+  // Alias for getAll - used by SuperAdminDashboard
+  listUserDocs: async () => {
+    const { data } = await axiosInstance.get('/api/documents');
+    return data.documents;
+  },
+
   // Get document details with all versions
   getDetails: async (docId) => {
     const { data } = await axiosInstance.get(`/api/documents/${docId}`);

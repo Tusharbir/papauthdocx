@@ -27,6 +27,14 @@ const DemoPage = () => (
           </div>
         ))}
       </section>
+
+      <section className="max-w-2xl mx-auto text-center">
+        <p className="text-sm text-slate-400 mb-4">Ready to try a real flow?</p>
+        <div className="flex items-center justify-center gap-4">
+          <a href="/login" className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold">Open dashboard (login)</a>
+          <a href="/verify" className="px-6 py-3 rounded-full border border-white/10 text-sm">Try verification</a>
+        </div>
+      </section>
     </main>
     <RegisterVerifyPanel />
     <Footer />

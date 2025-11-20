@@ -7,6 +7,7 @@ import auditApi from '../../api/auditApi';
 import Card from '../../components/ui/Card';
 import PageHeader from '../../components/ui/PageHeader';
 import Input from '../../components/ui/Input';
+import { USER_ROLES } from '../../constants/enums';
 
 const OrgAuditLogs = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
@@ -28,7 +29,7 @@ const OrgAuditLogs = () => {
       const response = await auditApi.getByOrg(user.orgId, { limit });
       return response;
     },
-    enabled: !!user?.orgId && (user?.role === 'admin' || user?.role === 'superadmin')
+    enabled: !!user?.orgId && (user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.SUPERADMIN)
   });
 
   const logs = logsData?.logs || [];
@@ -54,17 +55,28 @@ const OrgAuditLogs = () => {
       UPLOAD: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
       APPROVE: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
       REVOKE: 'bg-rose-500/20 text-rose-400 border-rose-500/30',
-      CRYPTO_CHECK: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
+      VERIFIED: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
     };
     return badges[action] || 'bg-slate-500/20 text-slate-400 border-slate-500/30';
   };
 
-  if (!user?.orgId || (user?.role !== 'admin' && user?.role !== 'superadmin')) {
+  if (user?.role !== USER_ROLES.ADMIN && user?.role !== USER_ROLES.SUPERADMIN) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Card className="p-8 text-center max-w-md">
           <p className="text-rose-400 text-lg font-semibold">Access Denied</p>
           <p className="text-slate-400 mt-2">Only admins can view organization audit logs.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!user?.orgId) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="p-8 text-center max-w-md">
+          <p className="text-amber-400 text-lg font-semibold">No Organization</p>
+          <p className="text-slate-400 mt-2">You are not assigned to an organization.</p>
         </Card>
       </div>
     );
@@ -114,7 +126,7 @@ const OrgAuditLogs = () => {
         <Card className="p-4">
           <p className="text-sm text-slate-400">Verifications</p>
           <p className="text-2xl font-bold text-purple-400 mt-1">
-            {logs.filter(l => l.action === 'CRYPTO_CHECK').length}
+            {logs.filter(l => l.action === 'VERIFIED').length}
           </p>
         </Card>
         <Card className="p-4">
@@ -143,7 +155,7 @@ const OrgAuditLogs = () => {
             <option value="UPLOAD">Upload</option>
             <option value="APPROVE">Approve</option>
             <option value="REVOKE">Revoke</option>
-            <option value="CRYPTO_CHECK">Crypto Check</option>
+            <option value="VERIFIED">Verified</option>
           </select>
           <div className="flex items-center text-sm text-slate-400">
             Showing {filtered.length} of {logs.length} logs

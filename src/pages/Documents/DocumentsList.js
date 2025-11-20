@@ -10,6 +10,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import Loader from '../../components/ui/Loader';
 import useUIStore from '../../store/uiStore';
 import { documentApi } from '../../api/documentApi';
+import { WORKFLOW_STATUS, STATUS_BADGE_TONES } from '../../constants/enums';
 
 const DocumentsList = () => {
   const mode = useUIStore((state) => state.mode);
@@ -37,9 +38,12 @@ const DocumentsList = () => {
   const uniqueTypes = [...new Set(documents.map(d => d.type))];
 
   const getStatusBadge = (status) => {
-    if (status === 'APPROVED') return <Badge tone="success">Active</Badge>;
-    if (status === 'REVOKED') return <Badge tone="error">Revoked</Badge>;
-    return <Badge tone="info">Unknown</Badge>;
+    const tone = STATUS_BADGE_TONES[status] || 'info';
+    const label = status === WORKFLOW_STATUS.APPROVED ? 'Active' 
+      : status === WORKFLOW_STATUS.REVOKED ? 'Revoked' 
+      : status === WORKFLOW_STATUS.PENDING ? 'Pending'
+      : 'Unknown';
+    return <Badge tone={tone}>{label}</Badge>;
   };
 
   if (isLoading) {

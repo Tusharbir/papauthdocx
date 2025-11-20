@@ -197,7 +197,7 @@ const DocsPage = () => {
           <section className="space-y-6">
             {technicalDocs.map((section) => (
               <Card key={section.title}>
-                <h2 className="text-xl font-semibold mb-4 text-emerald-400">{section.title}</h2>
+                <h2 className="text-xl font-semibold mb-4 text-emerald-400" id={section.title.toLowerCase().replace(/[^a-z0-9]+/g,'-')}>{section.title}</h2>
                 <ul className="space-y-2 text-sm text-slate-300/90">
                   {section.items.map((item, idx) => (
                     <li key={idx}>• {item}</li>
@@ -205,6 +205,11 @@ const DocsPage = () => {
                 </ul>
               </Card>
             ))}
+            
+            {/* Anchors for footer links */}
+            <div id="compliance" />
+            <div id="rbac" />
+            <div id="api" />
           </section>
         )}
       </main>

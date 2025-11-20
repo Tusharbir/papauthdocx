@@ -41,6 +41,9 @@ const OrganizationList = () => {
 
   const filtered = orgs.filter((org) => (typeFilter === 'all' ? true : org.type === typeFilter));
 
+  // Get unique organization types from actual data
+  const uniqueTypes = [...new Set(orgs.map(o => o.type).filter(Boolean))];
+
   return (
     <div>
       <PageHeader
@@ -61,9 +64,9 @@ const OrganizationList = () => {
           onChange={(e) => setTypeFilter(e.target.value)}
         >
           <option value="all">All types</option>
-          <option value="Enterprise">Enterprise</option>
-          <option value="Government">Government</option>
-          <option value="University">University</option>
+          {uniqueTypes.map(type => (
+            <option key={type} value={type}>{type}</option>
+          ))}
         </select>
       </div>
       {filtered.length === 0 ? (

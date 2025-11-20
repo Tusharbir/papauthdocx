@@ -7,6 +7,7 @@ import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import { documentApi } from '../../api/documentApi';
 import useUIStore from '../../store/uiStore';
+import { WORKFLOW_STATUS, STATUS_BADGE_TONES } from '../../constants/enums';
 
 const VerifierDocumentsList = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
@@ -39,10 +40,12 @@ const VerifierDocumentsList = () => {
   });
 
   const getStatusBadge = (status) => {
-    if (status === 'APPROVED') return <Badge tone="success">Approved</Badge>;
-    if (status === 'PENDING') return <Badge tone="warning">Pending</Badge>;
-    if (status === 'REVOKED') return <Badge tone="error">Revoked</Badge>;
-    return <Badge tone="default">{status}</Badge>;
+    const tone = STATUS_BADGE_TONES[status] || 'default';
+    const label = status === WORKFLOW_STATUS.APPROVED ? 'Approved' 
+      : status === WORKFLOW_STATUS.PENDING ? 'Pending' 
+      : status === WORKFLOW_STATUS.REVOKED ? 'Revoked' 
+      : status;
+    return <Badge tone={tone}>{label}</Badge>;
   };
 
   const documentTypes = [...new Set(documents.map(d => d.type).filter(Boolean))];
@@ -67,9 +70,9 @@ const VerifierDocumentsList = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
         >
           <option value="all">All statuses</option>
-          <option value="APPROVED">Approved</option>
-          <option value="PENDING">Pending</option>
-          <option value="REVOKED">Revoked</option>
+          <option value={WORKFLOW_STATUS.APPROVED}>Approved</option>
+          <option value={WORKFLOW_STATUS.PENDING}>Pending</option>
+          <option value={WORKFLOW_STATUS.REVOKED}>Revoked</option>
         </select>
         {documentTypes.length > 0 && (
           <select

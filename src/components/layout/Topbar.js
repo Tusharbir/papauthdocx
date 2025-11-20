@@ -39,14 +39,23 @@ const Topbar = () => {
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', minHeight: 88 }}>
-        <Stack direction="row" spacing={1} alignItems="center">
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flex: 1, minWidth: 0, mr: 2 }}>
           {breadcrumbs.map((crumb, index) => (
-            <Stack direction="row" spacing={1} alignItems="center" key={`${crumb}-${index}`}>
-              <Typography variant="body2" color="text.secondary">
+            <Stack direction="row" spacing={1} alignItems="center" key={`${crumb}-${index}`} sx={{ minWidth: 0 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ 
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: { xs: '80px', sm: '120px', md: '200px' }
+                }}
+              >
                 {crumb}
               </Typography>
               {index < breadcrumbs.length - 1 && (
-                <Typography variant="body2" color="text.disabled">
+                <Typography variant="body2" color="text.disabled" sx={{ flexShrink: 0 }}>
                   /
                 </Typography>
               )}

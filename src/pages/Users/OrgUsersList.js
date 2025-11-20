@@ -1,17 +1,28 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
+import Modal from '../../components/ui/Modal';
+import Button from '../../components/ui/Button';
 import useAuthStore from '../../store/authStore';
 import useUIStore from '../../store/uiStore';
-import axiosInstance from '../../api/axiosInstance';
+import { organizationApi } from '../../api/organizationApi';
+import { useSnackbar } from 'notistack';
+import { validateField } from '../../utils/validation';
+import { USER_ROLES, ROLE_BADGE_TONES } from '../../constants/enums';
 
 const OrgUsersList = () => {
   const mode = useUIStore((state) => state.mode);
+  const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [errors, setErrors] = useState({ name: '', email: '', password: '' });
+  const [touched, setTouched] = useState({ name: false, email: false, password: false });
   const user = useAuthStore((state) => state.user);
 
   const inputClass = mode === 'dark'
@@ -21,11 +32,23 @@ const OrgUsersList = () => {
   // Fetch users in admin's organization
   const { data: users = [], isLoading } = useQuery({
     queryKey: ['org-users', user?.orgId],
-    queryFn: async () => {
-      const { data } = await axiosInstance.get(`/api/orgs/${user?.orgId}/users`);
-      return data.users || [];
-    },
+    queryFn: () => organizationApi.listUsers(user?.orgId),
     enabled: !!user?.orgId,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (payload) => organizationApi.createVerifier(user?.orgId, payload),
+    onSuccess: () => {
+      enqueueSnackbar('Verifier invited successfully', { variant: 'success' });
+      queryClient.invalidateQueries({ queryKey: ['org-users', user?.orgId] });
+      setModalOpen(false);
+      setForm({ name: '', email: '', password: '' });
+      setErrors({ name: '', email: '', password: '' });
+      setTouched({ name: false, email: false, password: false });
+    },
+    onError: (error) => {
+      enqueueSnackbar(error?.response?.data?.error || 'Failed to create verifier', { variant: 'error' });
+    },
   });
 
   const filtered = users.filter((u) => {
@@ -37,9 +60,60 @@ const OrgUsersList = () => {
   });
 
   const getRoleBadge = (role) => {
-    if (role === 'admin') return <Badge tone="warning">Admin</Badge>;
-    if (role === 'verifier') return <Badge tone="info">Verifier</Badge>;
-    return <Badge tone="default">User</Badge>;
+    const tone = ROLE_BADGE_TONES[role] || 'default';
+    const label = role === USER_ROLES.ADMIN ? 'Admin' 
+      : role === USER_ROLES.VERIFIER ? 'Verifier' 
+      : role;
+    return <Badge tone={tone}>{label}</Badge>;
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateFieldValue(field, form[field]);
+  };
+
+  const validateFieldValue = (field, value) => {
+    let fieldType = field;
+    if (field === 'name') fieldType = 'name';
+    if (field === 'email') fieldType = 'email';
+    if (field === 'password') fieldType = 'password';
+
+    const error = validateField(fieldType, value);
+    setErrors((prev) => ({ ...prev, [field]: error || '' }));
+    return !error;
+  };
+
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (touched[field]) {
+      validateFieldValue(field, value);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Mark all fields as touched
+    setTouched({ name: true, email: true, password: true });
+
+    // Validate all fields
+    const nameError = validateField('name', form.name);
+    const emailError = validateField('email', form.email);
+    const passwordError = validateField('password', form.password);
+
+    setErrors({
+      name: nameError || '',
+      email: emailError || '',
+      password: passwordError || '',
+    });
+
+    // If any errors, don't submit
+    if (nameError || emailError || passwordError) {
+      enqueueSnackbar('Please fix the errors before submitting', { variant: 'error' });
+      return;
+    }
+
+    createMutation.mutate(form);
   };
 
   return (
@@ -47,6 +121,7 @@ const OrgUsersList = () => {
       <PageHeader
         title="Organization Users"
         subtitle={`Users in your organization`}
+        actions={[{ label: 'Invite Verifier', onClick: () => setModalOpen(true) }]}
       />
       <div className="mb-4 flex flex-wrap gap-3">
         <input
@@ -61,8 +136,8 @@ const OrgUsersList = () => {
           onChange={(e) => setRoleFilter(e.target.value)}
         >
           <option value="all">All roles</option>
-          <option value="admin">Admin</option>
-          <option value="verifier">Verifier</option>
+          <option value={USER_ROLES.ADMIN}>Admin</option>
+          <option value={USER_ROLES.VERIFIER}>Verifier</option>
         </select>
       </div>
       {isLoading ? (
@@ -95,6 +170,59 @@ const OrgUsersList = () => {
       <div className="mt-4 text-sm text-slate-400">
         Showing {filtered.length} of {users.length} users
       </div>
+
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        <h3 className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>Invite Verifier</h3>
+        <form className="mt-4 space-y-4" onSubmit={handleSubmit} autoComplete="off" noValidate>
+          <div>
+            <input
+              className={`w-full rounded-2xl border px-4 py-3 text-sm ${inputClass} ${errors.name && touched.name ? 'border-red-500' : ''}`}
+              placeholder="Full Name"
+              value={form.name}
+              onChange={(e) => handleChange('name', e.target.value)}
+              onBlur={() => handleBlur('name')}
+              autoComplete="off"
+            />
+            {errors.name && touched.name && (
+              <p className="mt-1 text-xs text-red-400">{errors.name}</p>
+            )}
+          </div>
+          
+          <div>
+            <input
+              type="email"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm ${inputClass} ${errors.email && touched.email ? 'border-red-500' : ''}`}
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              onBlur={() => handleBlur('email')}
+              autoComplete="off"
+            />
+            {errors.email && touched.email && (
+              <p className="mt-1 text-xs text-red-400">{errors.email}</p>
+            )}
+          </div>
+          
+          <div>
+            <input
+              type="password"
+              className={`w-full rounded-2xl border px-4 py-3 text-sm ${inputClass} ${errors.password && touched.password ? 'border-red-500' : ''}`}
+              placeholder="Password (min 8 chars, uppercase, lowercase, number)"
+              value={form.password}
+              onChange={(e) => handleChange('password', e.target.value)}
+              onBlur={() => handleBlur('password')}
+              autoComplete="new-password"
+            />
+            {errors.password && touched.password && (
+              <p className="mt-1 text-xs text-red-400">{errors.password}</p>
+            )}
+          </div>
+          
+          <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+            {createMutation.isPending ? 'Creating…' : 'Invite Verifier'}
+          </Button>
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -9,6 +9,7 @@ import useAuthStore from '../../store/authStore';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
+import { WORKFLOW_STATUS, STATUS_BADGE_TONES } from '../../constants/enums';
 
 const AdminDashboard = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
@@ -28,14 +29,14 @@ const AdminDashboard = () => {
   });
 
   const stats = [
-    { label: 'Total documents', value: analytics?.data?.totalDocuments || 0, trend: '+6%' },
-    { label: 'Approved', value: analytics?.data?.approved || 0, trend: '+2%' },
-    { label: 'Pending', value: analytics?.data?.pending || 0, trend: '-1%' },
-    { label: 'Revoked', value: analytics?.data?.revoked || 0, trend: '+11%' },
+    { label: 'Total documents', value: analytics?.totalDocuments || 0, trend: '+6%' },
+    { label: 'Approved', value: analytics?.approved || 0, trend: '+2%' },
+    { label: 'Pending', value: analytics?.pending || 0, trend: '-1%' },
+    { label: 'Revoked', value: analytics?.revoked || 0, trend: '+11%' },
   ];
 
-  const analyticsData = analytics?.data?.throughputData || [];
-  const pieData = analytics?.data?.pieData?.map((item, index) => ({
+  const analyticsData = analytics?.throughputData || [];
+  const pieData = analytics?.pieData?.map((item, index) => ({
     ...item,
     color: index === 0 ? '#00C4B4' : index === 1 ? '#FFC857' : '#FF6B6B'
   })) || [];
@@ -95,28 +96,43 @@ const AdminDashboard = () => {
         <Card className="p-6">
           <p className="text-sm text-slate-400">Latest uploads</p>
           <div className="mt-4 space-y-4">
-            {documents.slice(0, 4).map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                <div>
-                  <p className="font-semibold">{doc.name}</p>
-                  <p className="text-xs text-slate-400">{doc.owner}</p>
+            {documents.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No documents uploaded yet</p>
+            ) : (
+              documents.slice(0, 4).map((doc) => (
+                <div key={doc.docId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="flex-1">
+                    <p className="font-semibold text-white">{doc.docId}</p>
+                    <p className="text-xs text-slate-400">{doc.type || 'Document'} • v{doc.currentVersion || 1}</p>
+                  </div>
+                  <Badge tone={STATUS_BADGE_TONES[doc.latestVersionStatus] || 'warning'}>
+                    {doc.latestVersionStatus || WORKFLOW_STATUS.PENDING}
+                  </Badge>
                 </div>
-                <Badge tone={doc.status === 'verified' ? 'success' : doc.status === 'revoked' ? 'danger' : 'info'}>
-                  {doc.status}
-                </Badge>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </Card>
         <Card className="p-6">
           <p className="text-sm text-slate-400">Recent activity</p>
           <div className="mt-4 space-y-3 text-sm text-slate-300">
-            {documents.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between">
-                <span>{doc.activity}</span>
-                <span className="text-xs text-slate-500">{doc.lastUpdated}</span>
-              </div>
-            ))}
+            {documents.length === 0 ? (
+              <p className="text-sm text-slate-500 text-center py-4">No recent activity</p>
+            ) : (
+              documents.slice(0, 5).map((doc) => (
+                <div key={doc.docId} className="flex items-center justify-between border-b border-white/5 pb-3">
+                  <div>
+                    <p className="text-white font-medium">{doc.docId}</p>
+                    <p className="text-xs text-slate-500">
+                      {doc.latestVersionStatus === WORKFLOW_STATUS.APPROVED ? 'Approved' : doc.latestVersionStatus === WORKFLOW_STATUS.REVOKED ? 'Revoked' : 'Uploaded'} • {doc.type || 'Document'}
+                    </p>
+                  </div>
+                  <span className="text-xs text-slate-500">
+                    {new Date(doc.updatedAt || doc.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </div>

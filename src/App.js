@@ -6,7 +6,6 @@ import { SnackbarProvider } from 'notistack';
 import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleRoute from './components/layout/RoleRoute';
-import LandingPage from './pages/Landing/LandingPage';
 import Login from './pages/Auth/Login';
 import HomePage from './pages/HomePage';
 import DemoPage from './pages/DemoPage';
@@ -34,6 +33,7 @@ import AllAuditLogs from './pages/Audit/AllAuditLogs';
 import OrgAuditLogs from './pages/Audit/OrgAuditLogs';
 import DocumentVersions from './pages/Documents/DocumentVersions';
 import RevokeVersion from './pages/Documents/RevokeVersion';
+import AccessRequests from './pages/AccessRequests/AccessRequests';
 import AuthLayout from './layouts/AuthLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import PublicQrPage from './pages/Public/PublicQrPage';
@@ -49,7 +49,6 @@ const App = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/landing" element={<LandingPage />} />
         <Route path="/demo" element={<DemoPage />} />
         <Route path="/docs" element={<DocsPage />} />
         <Route path="/contact" element={<ContactPage />} />
@@ -68,10 +67,21 @@ const App = () => {
               <Route path="/dashboard/superadmin/users" element={<AllUsersList />} />
               <Route path="/dashboard/superadmin/audit" element={<AllAuditLogs />} />
               <Route path="/dashboard/superadmin/analytics" element={<AnalyticsDashboard />} />
+              <Route path="/dashboard/superadmin/access-requests" element={<AccessRequests />} />
+              {/* Superadmin shared features */}
+              <Route path="/dashboard/superadmin/documents" element={<DocumentsList />} />
+              <Route path="/dashboard/superadmin/upload" element={<UploadDocument />} />
+              <Route path="/dashboard/superadmin/documents/:docId" element={<DocumentDetails />} />
+              <Route path="/dashboard/superadmin/documents/:docId/versions" element={<DocumentVersions />} />
+              <Route path="/dashboard/superadmin/documents/:docId/revoke/:versionNumber" element={<RevokeVersion />} />
+              <Route path="/dashboard/superadmin/verify" element={<VerifyDocument />} />
+              <Route path="/dashboard/superadmin/qr/generate" element={<GenerateQR />} />
+              <Route path="/dashboard/superadmin/workflow" element={<StateManager />} />
+              <Route path="/dashboard/superadmin/revocations" element={<RevokeDocument />} />
             </Route>
             
-            {/* Admin Routes - Superadmin also has access */}
-            <Route element={<RoleRoute allowedRoles={['admin', 'superadmin']} />}>
+            {/* Admin Routes */}
+            <Route element={<RoleRoute allowedRoles={['admin']} />}>
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
               <Route path="/dashboard/admin/documents" element={<DocumentsList />} />
               <Route path="/dashboard/admin/upload" element={<UploadDocument />} />

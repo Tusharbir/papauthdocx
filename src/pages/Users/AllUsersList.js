@@ -6,6 +6,7 @@ import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
 import axiosInstance from '../../api/axiosInstance';
 import useUIStore from '../../store/uiStore';
+import { USER_ROLES, ROLE_BADGE_TONES } from '../../constants/enums';
 
 const AllUsersList = () => {
   const mode = useUIStore((state) => state.mode);
@@ -45,10 +46,12 @@ const AllUsersList = () => {
   });
 
   const getRoleBadge = (role) => {
-    if (role === 'superadmin') return <Badge tone="error">Superadmin</Badge>;
-    if (role === 'admin') return <Badge tone="warning">Admin</Badge>;
-    if (role === 'verifier') return <Badge tone="info">Verifier</Badge>;
-    return <Badge tone="default">User</Badge>;
+    const tone = ROLE_BADGE_TONES[role] || 'default';
+    const label = role === USER_ROLES.SUPERADMIN ? 'Superadmin' 
+      : role === USER_ROLES.ADMIN ? 'Admin' 
+      : role === USER_ROLES.VERIFIER ? 'Verifier' 
+      : role;
+    return <Badge tone={tone}>{label}</Badge>;
   };
 
   return (
@@ -70,8 +73,8 @@ const AllUsersList = () => {
           onChange={(e) => setRoleFilter(e.target.value)}
         >
           <option value="all">All roles</option>
-          <option value="admin">Admin</option>
-          <option value="verifier">Verifier</option>
+          <option value={USER_ROLES.ADMIN}>Admin</option>
+          <option value={USER_ROLES.VERIFIER}>Verifier</option>
         </select>
         <select
           className={`rounded-full border px-4 py-2 text-sm ${inputClass}`}

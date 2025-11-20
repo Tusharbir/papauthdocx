@@ -15,38 +15,43 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 import UploadFileOutlinedIcon from '@mui/icons-material/UploadFileOutlined';
 import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
 import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import PersonAddOutlinedIcon from '@mui/icons-material/PersonAddOutlined';
 import useUIStore from '../../store/uiStore';
 import useAuthStore from '../../store/authStore';
+import { USER_ROLES } from '../../constants/enums';
 
 const APP_NAME = process.env.REACT_APP_NAME || 'PapDocAuthX';
 const APP_SHORT_NAME = process.env.REACT_APP_SHORT_NAME || 'PDX+';
 
 const navConfig = [
-  // Superadmin only (exclusive features)
-  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/superadmin', roles: ['superadmin'] },
-  { label: 'Organizations', icon: <BusinessOutlinedIcon />, path: '/dashboard/superadmin/organizations', roles: ['superadmin'] },
-  { label: 'All Users', icon: <PeopleOutlinedIcon />, path: '/dashboard/superadmin/users', roles: ['superadmin'] },
-  { label: 'All Audit Logs', icon: <AssignmentOutlinedIcon />, path: '/dashboard/superadmin/audit', roles: ['superadmin'] },
-  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/superadmin/analytics', roles: ['superadmin'] },
+  // Superadmin-only features
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, pathTemplate: '/dashboard/{role}', roles: [USER_ROLES.SUPERADMIN] },
+  { label: 'Organizations', icon: <BusinessOutlinedIcon />, pathTemplate: '/dashboard/{role}/organizations', roles: [USER_ROLES.SUPERADMIN] },
+  { label: 'All Users', icon: <PeopleOutlinedIcon />, pathTemplate: '/dashboard/{role}/users', roles: [USER_ROLES.SUPERADMIN] },
+  { label: 'Access Requests', icon: <PersonAddOutlinedIcon />, pathTemplate: '/dashboard/{role}/access-requests', roles: [USER_ROLES.SUPERADMIN] },
+  { label: 'All Audit Logs', icon: <AssignmentOutlinedIcon />, pathTemplate: '/dashboard/{role}/audit', roles: [USER_ROLES.SUPERADMIN] },
+  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, pathTemplate: '/dashboard/{role}/analytics', roles: [USER_ROLES.SUPERADMIN] },
   
-  // Admin features (also available to superadmin)
-  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/admin', roles: ['admin'] },
-  { label: 'Upload Document', icon: <UploadFileOutlinedIcon />, path: '/dashboard/admin/upload', roles: ['admin', 'superadmin'] },
-  { label: 'Documents', icon: <DescriptionOutlinedIcon />, path: '/dashboard/admin/documents', roles: ['admin', 'superadmin'] },
-  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, path: '/dashboard/admin/verify', roles: ['admin', 'superadmin'] },
-  { label: 'Generate QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/admin/qr/generate', roles: ['admin', 'superadmin'] },
-  { label: 'Workflow', icon: <HubOutlinedIcon />, path: '/dashboard/admin/workflow', roles: ['admin', 'superadmin'] },
-  { label: 'Revocations', icon: <BlockOutlinedIcon />, path: '/dashboard/admin/revocations', roles: ['admin', 'superadmin'] },
-  { label: 'Org Users', icon: <PeopleOutlinedIcon />, path: '/dashboard/admin/users', roles: ['admin'] },
-  { label: 'Org Audit Logs', icon: <AssignmentOutlinedIcon />, path: '/dashboard/admin/audit', roles: ['admin', 'superadmin'] },
-  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, path: '/dashboard/admin/analytics', roles: ['admin'] },
+  // Admin-only features
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, pathTemplate: '/dashboard/{role}', roles: [USER_ROLES.ADMIN] },
+  { label: 'Org Users', icon: <PeopleOutlinedIcon />, pathTemplate: '/dashboard/{role}/users', roles: [USER_ROLES.ADMIN] },
+  { label: 'Org Audit Logs', icon: <AssignmentOutlinedIcon />, pathTemplate: '/dashboard/{role}/audit', roles: [USER_ROLES.ADMIN] },
+  { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, pathTemplate: '/dashboard/{role}/analytics', roles: [USER_ROLES.ADMIN] },
   
-  // User/Verifier only
-  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, path: '/dashboard/user', roles: ['verifier'] },
-  { label: 'Documents', icon: <DescriptionOutlinedIcon />, path: '/dashboard/user/documents', roles: ['verifier'] },
-  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, path: '/dashboard/user/verify', roles: ['verifier'] },
-  { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, path: '/dashboard/user/qr/scan', roles: ['verifier'] },
-  { label: 'History', icon: <HistoryOutlinedIcon />, path: '/dashboard/user/history', roles: ['verifier'] },
+  // Shared features (superadmin and admin)
+  { label: 'Upload Document', icon: <UploadFileOutlinedIcon />, pathTemplate: '/dashboard/{role}/upload', roles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN] },
+  { label: 'Documents', icon: <DescriptionOutlinedIcon />, pathTemplate: '/dashboard/{role}/documents', roles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN] },
+  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, pathTemplate: '/dashboard/{role}/verify', roles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN] },
+  { label: 'Generate QR', icon: <QrCode2OutlinedIcon />, pathTemplate: '/dashboard/{role}/qr/generate', roles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN] },
+  { label: 'Workflow', icon: <HubOutlinedIcon />, pathTemplate: '/dashboard/{role}/workflow', roles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN] },
+  { label: 'Revocations', icon: <BlockOutlinedIcon />, pathTemplate: '/dashboard/{role}/revocations', roles: [USER_ROLES.SUPERADMIN, USER_ROLES.ADMIN] },
+  
+  // Verifier features
+  { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, pathTemplate: '/dashboard/{role}', roles: [USER_ROLES.VERIFIER] },
+  { label: 'Documents', icon: <DescriptionOutlinedIcon />, pathTemplate: '/dashboard/{role}/documents', roles: [USER_ROLES.VERIFIER] },
+  { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, pathTemplate: '/dashboard/{role}/verify', roles: [USER_ROLES.VERIFIER] },
+  { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, pathTemplate: '/dashboard/{role}/qr/scan', roles: [USER_ROLES.VERIFIER] },
+  { label: 'History', icon: <HistoryOutlinedIcon />, pathTemplate: '/dashboard/{role}/history', roles: [USER_ROLES.VERIFIER] },
 ];
 
 const Sidebar = () => {
@@ -55,10 +60,32 @@ const Sidebar = () => {
   const toggleSidebar = useUIStore((state) => state.toggleSidebar);
   const role = useAuthStore((state) => state.role) || 'admin';
 
-  const items = useMemo(
-    () => navConfig.filter((item) => !item.roles || item.roles.includes(role)),
-    [role]
-  );
+  const items = useMemo(() => {
+    // Helper to resolve role-based paths
+    const resolvePath = (item, currentRole) => {
+      if (item.pathTemplate) {
+        // Map role to URL segment
+        const roleSegment = currentRole === USER_ROLES.SUPERADMIN ? 'superadmin' 
+                          : currentRole === USER_ROLES.ADMIN ? 'admin' 
+                          : 'user';
+        return item.pathTemplate.replace('{role}', roleSegment);
+      }
+      return item.path;
+    };
+
+    // Filter items based on role and resolve their paths
+    const filtered = navConfig
+      .filter((item) => {
+        if (!item.roles) return true;
+        return item.roles.includes(role);
+      })
+      .map(item => ({
+        ...item,
+        path: resolvePath(item, role)
+      }));
+
+    return filtered;
+  }, [role]);
 
   return (
     <motion.aside
@@ -74,9 +101,12 @@ const Sidebar = () => {
           : 'rgba(17,24,39,0.85)',
         borderRight: '1px solid rgba(255,255,255,0.08)',
         zIndex: 1100,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
       }}
     >
-      <Box display="flex" alignItems="center" justifyContent="space-between" px={2} py={3}>
+      <Box display="flex" alignItems="center" justifyContent="space-between" px={2} py={3} sx={{ flexShrink: 0 }}>
         <Typography variant="h6" color="white" fontWeight={700} sx={{ letterSpacing: 1 }}>
           {sidebarOpen ? APP_NAME : APP_SHORT_NAME}
         </Typography>
@@ -84,10 +114,35 @@ const Sidebar = () => {
           <MenuOpenRoundedIcon />
         </IconButton>
       </Box>
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.15)' }} />
-      <List sx={{ mt: 2 }}>
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+      <List sx={{ 
+        mt: 2, 
+        flex: 1, 
+        overflowY: 'auto', 
+        overflowX: 'hidden',
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: 'rgba(255,255,255,0.05)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'rgba(255,255,255,0.2)',
+          borderRadius: '3px',
+          '&:hover': {
+            background: 'rgba(255,255,255,0.3)',
+          },
+        },
+      }}>
         {items.map((item) => {
-          const active = location.pathname.startsWith(item.path);
+          // More precise active state detection
+          // For exact dashboard paths, use exact match
+          // For other paths, use startsWith but ensure it's not a false positive
+          const isDashboardRoot = item.path.match(/^\/dashboard\/(superadmin|admin|user)$/);
+          const active = isDashboardRoot 
+            ? location.pathname === item.path 
+            : location.pathname.startsWith(item.path);
+            
           const content = (
             <ListItemButton
               component={Link}

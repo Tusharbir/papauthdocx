@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Grid, Paper, Stack, Typography, Skeleton } from '@mui/material';
-import { ResponsiveContainer, LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 import { analyticsApi } from '../../api/analyticsApi';
 import useUIStore from '../../store/uiStore';
@@ -23,14 +23,14 @@ const AnalyticsDashboard = () => {
   });
 
   const stats = [
-    { label: 'Total Documents', value: analytics?.data?.totalDocuments || 0 },
-    { label: 'Approved', value: analytics?.data?.approved || 0 },
-    { label: 'Pending', value: analytics?.data?.pending || 0 },
-    { label: 'Revoked', value: analytics?.data?.revoked || 0 },
+    { label: 'Total Documents', value: analytics?.totalDocuments || 0 },
+    { label: 'Approved', value: analytics?.approved || 0 },
+    { label: 'Pending', value: analytics?.pending || 0 },
+    { label: 'Revoked', value: analytics?.revoked || 0 },
   ];
 
-  const throughputData = analytics?.data?.throughputData || [];
-  const pieData = analytics?.data?.pieData || [];
+  const throughputData = analytics?.throughputData || [];
+  const pieData = analytics?.pieData || [];
 
   if (isLoading) {
     return (

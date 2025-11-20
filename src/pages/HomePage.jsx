@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import analyticsApi from '../api/analyticsApi';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import RegisterVerifyPanel from '../components/RegisterVerifyPanel';
@@ -102,6 +104,14 @@ function HomePage() {
     }
   }, [isAuthenticated, user, navigate]);
 
+  const { data: analytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['analytics', 'summary'],
+    queryFn: analyticsApi.getSummary,
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  const totalDocuments = analytics?.totalDocuments ?? analytics?.total_docs ?? 0;
+
   return (
     <div className="min-h-screen w-full bg-slate-950 text-slate-50">
       <Navbar />
@@ -161,8 +171,8 @@ function HomePage() {
               <h3 className="text-xl font-semibold mb-6">Built for high stakes</h3>
               <div className="grid grid-cols-3 gap-8 text-center">
                 <div>
-                  <div className="text-4xl font-bold text-emerald-300 icon-float">0</div>
-                  <div className="text-sm text-slate-400">Document content stored</div>
+                  <div className="text-4xl font-bold text-emerald-300 icon-float">{analyticsLoading ? '…' : totalDocuments}</div>
+                  <div className="text-sm text-slate-400">Total documents</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold text-blue-300 icon-float">4+</div>

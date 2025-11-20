@@ -2,25 +2,49 @@ import { useState } from 'react';
 import { Box, Container, Paper, Stack, TextField, Typography, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useSnackbar } from 'notistack';
+import { useMutation } from '@tanstack/react-query';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import accessRequestApi from '../api/accessRequestApi';
 
 const ContactPage = () => {
   const [form, setForm] = useState({ name: '', organization: '', email: '', message: '' });
   const { enqueueSnackbar } = useSnackbar();
 
+  const [errors, setErrors] = useState({});
+
+  const mutation = useMutation({
+    mutationFn: accessRequestApi.submit,
+    onSuccess: (data) => {
+      enqueueSnackbar(data.message || 'Request submitted successfully!', { variant: 'success' });
+      setForm({ name: '', organization: '', email: '', message: '' });
+    },
+    onError: (error) => {
+      // Prefer validation details if present
+      const details = error.response?.data?.details;
+      if (Array.isArray(details) && details.length > 0) {
+        details.forEach(d => enqueueSnackbar(`${d.field}: ${d.message}`, { variant: 'error' }));
+        return;
+      }
+
+      const message = error.response?.data?.error || 'Failed to submit request. Please try again.';
+      enqueueSnackbar(message, { variant: 'error' });
+    },
+  });
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    
-    // For now, just show success message
-    // In production, this would send email to superadmin
-    enqueueSnackbar(
-      'Request received. Our team will contact you within 24-48 hours.',
-      { variant: 'success' }
-    );
-    
-    // Reset form
-    setForm({ name: '', organization: '', email: '', message: '' });
+    // Client-side validation
+    const newErrors = {};
+    if (!form.name || form.name.trim().length < 2) newErrors.name = 'Please enter your name (min 2 chars)';
+    if (!form.organization || form.organization.trim().length < 2) newErrors.organization = 'Please enter organization name (min 2 chars)';
+    if (!form.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) newErrors.email = 'Please enter a valid email';
+    if (form.message && form.message.length > 2000) newErrors.message = 'Message must not exceed 2000 characters';
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    mutation.mutate(form);
   };
 
   return (
@@ -49,6 +73,8 @@ const ContactPage = () => {
                       required
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      error={!!errors.name}
+                      helperText={errors.name}
                     />
                     
                     <TextField
@@ -57,7 +83,8 @@ const ContactPage = () => {
                       required
                       value={form.organization}
                       onChange={(e) => setForm({ ...form, organization: e.target.value })}
-                      helperText="University, Corporation, Government Agency, etc."
+                      helperText={errors.organization || 'University, Corporation, Government Agency, etc.'}
+                      error={!!errors.organization}
                     />
                     
                     <TextField
@@ -67,7 +94,8 @@ const ContactPage = () => {
                       type="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      helperText="Please use your organization's email address"
+                      helperText={errors.email || "Please use your organization's email address"}
+                      error={!!errors.email}
                     />
                     
                     <TextField
@@ -78,6 +106,8 @@ const ContactPage = () => {
                       value={form.message}
                       onChange={(e) => setForm({ ...form, message: e.target.value })}
                       placeholder="Tell us about your document authentication needs..."
+                      error={!!errors.message}
+                      helperText={errors.message}
                     />
 
                     <Button
@@ -85,9 +115,10 @@ const ContactPage = () => {
                       type="submit"
                       size="large"
                       fullWidth
+                      disabled={mutation.isPending}
                       sx={{ py: 1.5 }}
                     >
-                      Submit Request
+                      {mutation.isPending ? 'Submitting...' : 'Submit Request'}
                     </Button>
                   </Stack>
                 </Box>
