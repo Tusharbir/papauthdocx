@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { Routes, Route, useLocation } from 'react-router-dom';
@@ -44,6 +44,12 @@ const App = () => {
   const location = useLocation();
   const mode = useUIStore((state) => state.mode);
   const theme = useMemo(() => buildTheme(mode), [mode]);
+
+  useEffect(() => {
+    // Sync mode to the DOM so raw CSS can react to it as well
+    document.documentElement.dataset.theme = mode;
+    document.body.dataset.theme = mode;
+  }, [mode]);
 
   const routes = (
     <AnimatePresence mode="wait">

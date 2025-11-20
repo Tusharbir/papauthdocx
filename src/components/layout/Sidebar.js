@@ -58,6 +58,8 @@ const Sidebar = () => {
   const location = useLocation();
   const sidebarOpen = useUIStore((state) => state.sidebarOpen);
   const toggleSidebar = useUIStore((state) => state.toggleSidebar);
+  const mode = useUIStore((state) => state.mode);
+  const isDark = mode === 'dark';
   const role = useAuthStore((state) => state.role) || 'admin';
 
   const items = useMemo(() => {
@@ -97,9 +99,13 @@ const Sidebar = () => {
         top: 0,
         backdropFilter: 'blur(16px)',
         background: sidebarOpen
-          ? 'linear-gradient(180deg, rgba(17,24,39,0.9), rgba(17,24,39,0.7))'
-          : 'rgba(17,24,39,0.85)',
-        borderRight: '1px solid rgba(255,255,255,0.08)',
+          ? isDark
+            ? 'linear-gradient(180deg, rgba(17,24,39,0.92), rgba(15,23,42,0.82))'
+            : 'linear-gradient(180deg, rgba(255,255,255,0.94), rgba(241,245,249,0.92))'
+          : isDark
+            ? 'rgba(17,24,39,0.88)'
+            : 'rgba(241,245,249,0.96)',
+        borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'}`,
         zIndex: 1100,
         display: 'flex',
         flexDirection: 'column',
@@ -107,14 +113,14 @@ const Sidebar = () => {
       }}
     >
       <Box display="flex" alignItems="center" justifyContent="space-between" px={2} py={3} sx={{ flexShrink: 0 }}>
-        <Typography variant="h6" color="white" fontWeight={700} sx={{ letterSpacing: 1 }}>
+        <Typography variant="h6" color={isDark ? 'white' : 'text.primary'} fontWeight={700} sx={{ letterSpacing: 1 }}>
           {sidebarOpen ? APP_NAME : APP_SHORT_NAME}
         </Typography>
-        <IconButton size="small" onClick={toggleSidebar} sx={{ color: 'white' }}>
+        <IconButton size="small" onClick={toggleSidebar} sx={{ color: isDark ? 'white' : 'text.primary' }}>
           <MenuOpenRoundedIcon />
         </IconButton>
       </Box>
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.15)', flexShrink: 0 }} />
+      <Divider sx={{ borderColor: isDark ? 'rgba(255,255,255,0.15)' : 'rgba(15,23,42,0.08)', flexShrink: 0 }} />
       <List sx={{ 
         mt: 2, 
         flex: 1, 
@@ -124,13 +130,13 @@ const Sidebar = () => {
           width: '6px',
         },
         '&::-webkit-scrollbar-track': {
-          background: 'rgba(255,255,255,0.05)',
+          background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)',
         },
         '&::-webkit-scrollbar-thumb': {
-          background: 'rgba(255,255,255,0.2)',
+          background: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(15,23,42,0.15)',
           borderRadius: '3px',
           '&:hover': {
-            background: 'rgba(255,255,255,0.3)',
+            background: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(15,23,42,0.3)',
           },
         },
       }}>
@@ -151,10 +157,14 @@ const Sidebar = () => {
                 mx: 1.5,
                 mb: 1,
                 borderRadius: 3,
-                color: 'rgba(255,255,255,0.85)',
-                backgroundColor: active ? 'rgba(0,100,255,0.18)' : 'transparent',
+                color: isDark ? 'rgba(255,255,255,0.85)' : '#0f172a',
+                backgroundColor: active
+                  ? isDark
+                    ? 'rgba(0,100,255,0.18)'
+                    : 'rgba(0,102,255,0.12)'
+                  : 'transparent',
                 '&:hover': {
-                  backgroundColor: 'rgba(0,196,180,0.18)',
+                  backgroundColor: isDark ? 'rgba(0,196,180,0.18)' : 'rgba(0,196,180,0.14)',
                 },
               }}
             >
