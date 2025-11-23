@@ -85,9 +85,14 @@ const StateManager = () => {
                 renderOption={(props, option) => (
                   <li {...props}>
                     <div>
-                      <div style={{ fontWeight: 500 }}>{option.docId}</div>
+                      <div
+                        style={{ fontWeight: 500, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        title={option.docId}
+                      >
+                        {option.docId}
+                      </div>
                       <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                        {option.type || 'Document'} • v{option.currentVersion || 1} • {option.latestVersionStatus || 'UNKNOWN'}
+                        {option.type || 'Document'}  v{option.currentVersion || 1}  {option.latestVersionStatus || 'UNKNOWN'}
                       </div>
                     </div>
                   </li>

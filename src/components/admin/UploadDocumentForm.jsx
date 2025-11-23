@@ -269,7 +269,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
           <h3 className="text-lg font-semibold mb-4">2. Document Metadata</h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Document ID *</label>
+              <label className="text-sm font-semibold">Document ID <span className="text-rose-400">*</span></label>
               <input
                 required
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
@@ -280,7 +280,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Document Type *</label>
+              <label className="text-sm font-semibold">Document Type <span className="text-rose-400">*</span></label>
               <select
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
                 value={metadata.type}
@@ -295,7 +295,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Holder Name *</label>
+              <label className="text-sm font-semibold">Holder Name <span className="text-rose-400">*</span></label>
               <input
                 required
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
@@ -326,7 +326,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Issue Date</label>
+              <label className="text-sm font-semibold">Issue Date <span className="text-rose-400">*</span></label>
               <input
                 type="date"
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
@@ -347,7 +347,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
     </form>
 
     {/* ROI Selector Modal */}
-    <Modal open={showROISelector} onClose={handleSkipROI} size="full">
+    <Modal open={showROISelector} onClose={handleSkipROI} size="fullscreen">
       <div className="space-y-4 pr-8">
         <div>
           <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>

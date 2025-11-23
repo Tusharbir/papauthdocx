@@ -83,9 +83,22 @@ const DocumentsList = () => {
       </div>
 
       {error ? (
-        <p className={`text-sm ${mode === 'dark' ? 'text-rose-300' : 'text-rose-600'}`}>
-          {error?.response?.data?.message || 'Failed to load documents'}
-        </p>
+        <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2 w-full max-w-md px-4 flex justify-center pointer-events-none">
+          <div className="p-4 rounded-xl bg-rose-500/90 border border-rose-500/40 flex items-center justify-between gap-4 shadow-lg w-full pointer-events-auto animate-fade-in">
+            <p className="text-sm text-white flex-1 text-center">{error?.response?.data?.message || 'Failed to load documents'}</p>
+            <button
+              type="button"
+              className="text-white bg-rose-600/80 hover:bg-rose-700/90 border border-white/20 shadow-lg rounded-full p-2 ml-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-white"
+              aria-label="Close alert"
+              onClick={() => window.location.reload()}
+              style={{ lineHeight: 0 }}
+            >
+              <svg className="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
       ) : filtered.length === 0 ? (
         <EmptyState 
           title="No documents found" 
@@ -108,7 +121,11 @@ const DocumentsList = () => {
                   <Card className="p-6 transition-all hover:scale-[1.02] cursor-pointer">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <p className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                        <p
+                          className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'} overflow-hidden text-ellipsis whitespace-nowrap`}
+                          title={doc.docId}
+                          style={{ display: 'block', maxWidth: '16rem', minWidth: '6rem', width: '100%' }}
+                        >
                           {doc.docId}
                         </p>
                         <p className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -144,7 +161,7 @@ const DocumentsList = () => {
                         <p className={`text-xs ${mode === 'dark' ? 'text-slate-500' : 'text-slate-400'} mb-1`}>
                           Latest Hash:
                         </p>
-                        <p className={`font-mono text-xs ${mode === 'dark' ? 'text-slate-300' : 'text-slate-700'} truncate`}>
+                        <p className={`font-mono text-xs ${mode === 'dark' ? 'text-slate-300' : 'text-slate-700'} overflow-hidden text-ellipsis whitespace-nowrap max-w-full`} title={doc.latestVersionHash}>
                           {doc.latestVersionHash}
                         </p>
                       </div>

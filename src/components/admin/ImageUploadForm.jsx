@@ -279,12 +279,12 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
       )}
 
       {/* Metadata Form */}
-      {hashes && hashes.merkleRoot && (
+      {hashes && hashes.imageHash && hashes.merkleRoot && (
         <Card>
           <h3 className="text-lg font-semibold mb-4">Document Metadata</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Document ID</label>
+              <label className="block text-sm font-medium mb-2">Document ID <span className="text-rose-400">*</span></label>
               <input
                 type="text"
                 name="docId"
@@ -295,7 +295,7 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Document Type</label>
+              <label className="block text-sm font-medium mb-2">Document Type <span className="text-rose-400">*</span></label>
               <select
                 name="type"
                 value={metadata.type}
@@ -311,7 +311,7 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Holder Name</label>
+              <label className="block text-sm font-medium mb-2">Holder Name <span className="text-rose-400">*</span></label>
               <input
                 type="text"
                 name="holderName"
@@ -332,7 +332,7 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Issue Date</label>
+              <label className="block text-sm font-medium mb-2">Issue Date <span className="text-rose-400">*</span></label>
               <input
                 type="date"
                 name="issueDate"

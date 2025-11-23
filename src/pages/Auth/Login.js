@@ -23,7 +23,7 @@ const Login = () => {
     mutationFn: authApi.login,
     onSuccess: (data) => {
       setSession({ token: data.token, refreshToken: data.refreshToken, user: data.user });
-      enqueueSnackbar('Welcome back. Threat counters synchronized.', { variant: 'success' });
+      enqueueSnackbar('Welcome back!', { variant: 'success' });
       const role = data.user?.role || 'user';
       const roleRoutes = {
         superadmin: '/dashboard/superadmin',

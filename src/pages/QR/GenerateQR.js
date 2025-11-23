@@ -67,7 +67,13 @@ const GenerateQR = () => {
             renderOption={(props, option) => (
               <li {...props}>
                 <div>
-                  <div style={{ fontWeight: 500 }}>{option.docId}</div>
+                  <div
+                    style={{ fontWeight: 500, display: 'block', maxWidth: '100%' }}
+                    className="truncate"
+                    title={option.docId}
+                  >
+                    {option.docId}
+                  </div>
                   <div style={{ fontSize: '0.875rem', color: '#666' }}>
                     {option.type || 'Document'} • v{option.currentVersion || 1}
                   </div>

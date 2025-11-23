@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useQuery } from '@tanstack/react-query';
 import Card from '../ui/Card';
@@ -8,6 +8,8 @@ import Modal from '../ui/Modal';
 import useUIStore from '../../store/uiStore';
 import { extractAllHashes, renderPDFToCanvas } from '../../utils/hashExtraction';
 import { metadataApi } from '../../api/metadataApi';
+import organizationApi from '../../api/organizationApi';
+import useAuthStore from '../../store/authStore';
 import ROISelector from './ROISelector';
 
 const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
@@ -19,14 +21,24 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
   const [pdfCanvas, setPdfCanvas] = useState(null);
   const [signatureBox, setSignatureBox] = useState(null);
   const [stampBox, setStampBox] = useState(null);
-  const [metadata, setMetadata] = useState({
-    docId: '',
-    type: 'certificate',
-    holderName: '',
-    degreeTitle: '',
-    issueDate: '',
-    institution: ''
-  });
+    const [metadata, setMetadata] = useState({
+      docId: '',
+      type: 'certificate',
+      holderName: '',
+      title: '',
+      issueDate: ''
+    });
+    const [orgList, setOrgList] = useState([]);
+    const [selectedOrgId, setSelectedOrgId] = useState("");
+    const role = useAuthStore((state) => state.role);
+    // Fetch organizations if superadmin
+    useEffect(() => {
+      if (role === 'superadmin') {
+        organizationApi.list().then((orgs) => {
+          setOrgList(orgs);
+        });
+      }
+    }, [role]);
   
   const { data: documentTypesData } = useQuery({
     queryKey: ['document-types'],
@@ -128,25 +140,25 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (!hashes || !file) {
       setError('Please select a PDF document first and complete hash extraction');
       return;
     }
-
     if (!metadata.docId || !metadata.holderName) {
       setError('Please fill in required metadata fields');
       return;
     }
-
-    onSubmit({
+    if (role === 'superadmin' && !selectedOrgId) {
+      setError('Please select an organization');
+      return;
+    }
+    const payload = {
       docId: metadata.docId,
       type: metadata.type,
       metadata: {
         holderName: metadata.holderName,
-        degreeTitle: metadata.degreeTitle,
+        title: metadata.title,
         issueDate: metadata.issueDate,
-        institution: metadata.institution,
         fileName: file.name,
         fileSize: file.size,
         mimeType: file.type
@@ -157,7 +169,11 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
         signatureHash: hashes.signatureHash,
         stampHash: hashes.stampHash
       }
-    });
+    };
+    if (role === 'superadmin') {
+      payload.targetOrgId = Number(selectedOrgId);
+    }
+    onSubmit(payload);
   };
 
   return (
@@ -223,8 +239,21 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
         )}
 
         {error && (
-          <div className="mt-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/20">
-            <p className="text-sm text-rose-400">{error}</p>
+          <div className="fixed top-6 left-1/2 z-50 -translate-x-1/2 w-full max-w-md px-4 flex justify-center pointer-events-none">
+            <div className="p-4 rounded-xl bg-rose-500/90 border border-rose-500/40 flex items-center justify-between gap-4 shadow-lg w-full pointer-events-auto animate-fade-in">
+              <p className="text-sm text-white flex-1 text-center">{error}</p>
+              <button
+                type="button"
+                className="text-white bg-rose-600/80 hover:bg-rose-700/90 border border-white/20 shadow-lg rounded-full p-2 ml-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-white"
+                aria-label="Close alert"
+                onClick={() => setError(null)}
+                style={{ lineHeight: 0 }}
+              >
+                <svg className="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
           </div>
         )}
 
@@ -242,27 +271,23 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-mono">
               <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-slate-400 mb-1">Text Hash (SHA-256)</p>
-                <p className="text-white truncate">{hashes.textHash.slice(0, 32)}...</p>
+                <p className="text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-full" title={hashes.textHash}>{hashes.textHash}</p>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-slate-400 mb-1">Image Hash (SHA-256)</p>
-                <p className="text-white truncate">{hashes.imageHash.slice(0, 32)}...</p>
+                <p className="text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-full" title={hashes.imageHash}>{hashes.imageHash}</p>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-slate-400 mb-1">Signature Hash</p>
-                <p className="text-white truncate">
-                  {hashes.signatureHash ? `${hashes.signatureHash.slice(0, 32)}...` : 'Not selected'}
-                </p>
+                <p className="text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-full" title={hashes.signatureHash}>{hashes.signatureHash || 'Not selected'}</p>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                 <p className="text-slate-400 mb-1">Stamp Hash</p>
-                <p className="text-white truncate">
-                  {hashes.stampHash ? `${hashes.stampHash.slice(0, 32)}...` : 'Not selected'}
-                </p>
+                <p className="text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-full" title={hashes.stampHash}>{hashes.stampHash || 'Not selected'}</p>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 md:col-span-2">
                 <p className="text-slate-400 mb-1">Merkle Root</p>
-                <p className="text-blue-400 truncate font-semibold">{hashes.merkleRoot.slice(0, 32)}...</p>
+                <p className="text-blue-400 overflow-hidden text-ellipsis whitespace-nowrap max-w-full font-semibold" title={hashes.merkleRoot}>{hashes.merkleRoot}</p>
               </div>
               <div className="p-3 rounded-xl bg-white/5 border border-white/10 md:col-span-2">
                 <p className="text-slate-400 mb-1">Status</p>
@@ -275,11 +300,28 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
 
       {/* Metadata Form */}
       {hashes && (
-        <Card className="p-8">
+        <Card className="p-8 mt-6">
           <h3 className="text-lg font-semibold mb-4">2. Document Metadata</h3>
           <div className="grid gap-4 md:grid-cols-2">
+            {/* Superadmin: Organization dropdown */}
+            {role === 'superadmin' && (
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-semibold">Organization <span className="text-rose-400">*</span></label>
+                <select
+                  required
+                  className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
+                  value={selectedOrgId}
+                  onChange={e => setSelectedOrgId(e.target.value)}
+                >
+                  <option value="">Select organization</option>
+                  {orgList.map(org => (
+                    <option key={org.id || org.orgId} value={org.id || org.orgId}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Document ID *</label>
+              <label className="text-sm font-semibold">Document ID <span className="text-rose-400">*</span></label>
               <input
                 required
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
@@ -288,9 +330,8 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
                 placeholder="DOC_2024_001"
               />
             </div>
-            
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Document Type *</label>
+              <label className="text-sm font-semibold">Document Type <span className="text-rose-400">*</span></label>
               <select
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
                 value={metadata.type}
@@ -303,9 +344,8 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
                 ))}
               </select>
             </div>
-            
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Holder Name *</label>
+              <label className="text-sm font-semibold">Holder Name <span className="text-rose-400">*</span></label>
               <input
                 required
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
@@ -314,29 +354,17 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
                 placeholder="John Doe"
               />
             </div>
-            
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Institution</label>
+              <label className="text-sm font-semibold">Title</label>
               <input
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
-                value={metadata.institution}
-                onChange={(e) => setMetadata(prev => ({ ...prev, institution: e.target.value }))}
-                placeholder="MIT"
+                value={metadata.title}
+                onChange={(e) => setMetadata(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Document Title (optional)"
               />
             </div>
-            
             <div className="space-y-2">
-              <label className="text-sm font-semibold">Degree Title</label>
-              <input
-                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
-                value={metadata.degreeTitle}
-                onChange={(e) => setMetadata(prev => ({ ...prev, degreeTitle: e.target.value }))}
-                placeholder="Bachelor of Science in Computer Science"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-semibold">Issue Date</label>
+              <label className="text-sm font-semibold">Issue Date <span className="text-rose-400">*</span></label>
               <input
                 type="date"
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
@@ -345,35 +373,73 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
               />
             </div>
           </div>
+          <Button
+            type="submit"
+            className="w-full mt-6"
+            disabled={isSubmitting || !hashes || processing}
+          >
+            {isSubmitting ? 'Registering Hashes...' : '🔐 Register Document Hashes'}
+          </Button>
         </Card>
-      )}
-
-      {/* Submit Button */}
-      {hashes && (
-        <Button type="submit" className="w-full" disabled={isSubmitting || !hashes}>
-          {isSubmitting ? 'Registering Hashes...' : '🔐 Register Document Hashes'}
-        </Button>
       )}
     </form>
 
     {/* ROI Selector Modal */}
-    <Modal open={showROISelector} onClose={handleSkipROI} size="full">
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-xl font-bold text-white mb-2">Select Signature & Stamp Regions (Optional)</h3>
-          <p className="text-sm text-slate-400">
-            Draw boxes around the signature and official stamp for enhanced verification. 
-            This step is optional - you can skip if the document has no signature/stamp.
-          </p>
+    <Modal open={showROISelector} onClose={handleSkipROI} size="fullscreen">
+      <div className="flex flex-col h-full w-full">
+        {/* Header */}
+        <div className="w-full px-4 pt-6 pb-2 bg-slate-900 border-b border-white/10 flex items-center justify-between relative z-40">
+          <div>
+            <h3 className="text-lg md:text-2xl font-bold text-white">Select Signature & Stamp Regions (Optional)</h3>
+            <p className="text-xs md:text-sm text-slate-400 mt-1">
+              Draw boxes around the signature and official stamp for enhanced verification.<br />
+              This step is optional - you can skip if the document has no signature/stamp.
+            </p>
+          </div>
+          <button
+            onClick={handleSkipROI}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 z-50"
+            aria-label="Close"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        
-        {pdfCanvas && (
-          <ROISelector
-            canvas={pdfCanvas}
-            onComplete={handleROIComplete}
-            onSkip={handleSkipROI}
-          />
-        )}
+        {/* PDF Viewer Area */}
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#0a1120] overflow-auto w-full">
+          {pdfCanvas ? (
+            <div className="flex-1 flex items-center justify-center w-full h-full p-2 md:p-6">
+              <div className="relative w-full max-w-full h-full max-h-full flex items-center justify-center">
+                <ROISelector
+                  canvas={pdfCanvas}
+                  onSignatureSelect={setSignatureBox}
+                  onStampSelect={setStampBox}
+                  onComplete={handleROIComplete}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-slate-400 w-full">
+              <p className="text-lg">PDF preview not available.</p>
+              <p className="text-sm mt-2">Please re-upload your document or try again.</p>
+            </div>
+          )}
+        </div>
+        {/* Sticky Footer */}
+        <div className="sticky bottom-0 left-0 right-0 z-30 flex gap-3 bg-gradient-to-t from-slate-900/90 to-transparent px-4 py-3 border-t border-slate-800">
+          <Button
+            type="button"
+            onClick={() => handleROIComplete({ signature: signatureBox, stamp: stampBox })}
+            className="flex-1"
+            disabled={!signatureBox && !stampBox}
+          >
+            ✓ Continue
+          </Button>
+          <Button type="button" onClick={handleSkipROI} className="flex-1 bg-slate-600">
+            Skip This Step
+          </Button>
+        </div>
       </div>
     </Modal>
   </>

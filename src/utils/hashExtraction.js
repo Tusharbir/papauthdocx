@@ -71,8 +71,17 @@ export async function extractImageHash(pdfFile, scale = 300 / 72) {
       })
     );
 
-    const totalHeight = renderedPages.reduce((sum, p) => sum + p.height, 0);
-    const maxWidth = Math.max(...renderedPages.map((p) => p.width));
+    let totalHeight = renderedPages.reduce((sum, p) => sum + p.height, 0);
+    let maxWidth = Math.max(...renderedPages.map((p) => p.width));
+
+    // Limit the total canvas area to avoid OOM (e.g., 20 million pixels)
+    const MAX_CANVAS_AREA = 20000000; // 20 megapixels
+    let scaleFactor = 1;
+    if (maxWidth * totalHeight > MAX_CANVAS_AREA) {
+      scaleFactor = Math.sqrt(MAX_CANVAS_AREA / (maxWidth * totalHeight));
+      maxWidth = Math.floor(maxWidth * scaleFactor);
+      totalHeight = Math.floor(totalHeight * scaleFactor);
+    }
 
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
@@ -81,18 +90,29 @@ export async function extractImageHash(pdfFile, scale = 300 / 72) {
 
     let y = 0;
     renderedPages.forEach((p) => {
-      context.drawImage(p.canvas, 0, y);
-      y += p.height;
+      let drawWidth = p.width;
+      let drawHeight = p.height;
+      let dx = 0;
+      let dy = y;
+      if (scaleFactor !== 1) {
+        drawWidth = Math.floor(p.width * scaleFactor);
+        drawHeight = Math.floor(p.height * scaleFactor);
+        context.drawImage(p.canvas, 0, 0, p.width, p.height, dx, dy, drawWidth, drawHeight);
+        y += drawHeight;
+      } else {
+        context.drawImage(p.canvas, 0, y);
+        y += p.height;
+      }
     });
-    
+
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
-    
+
     for (let i = 0; i < pixels.length; i += 4) {
       const gray = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
       pixels[i] = pixels[i + 1] = pixels[i + 2] = gray;
     }
-    
+
     return await computeSHA256(pixels);
   } catch (error) {
     console.error('Image extraction failed:', error);

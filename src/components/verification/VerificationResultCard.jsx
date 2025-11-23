@@ -21,27 +21,30 @@ const VerificationResultCard = ({ result }) => {
   const authorityChecks = result.authorityValidation || {};
   
   const allChecks = [
-    { label: 'Text Hash Match', passed: cryptoChecks.textHashMatch, category: 'crypto' },
-    { label: 'Image Hash Match', passed: cryptoChecks.imageHashMatch, category: 'crypto' },
-    { label: 'Signature Hash Match', passed: cryptoChecks.signatureHashMatch, category: 'crypto' },
-    { label: 'Stamp Hash Match', passed: cryptoChecks.stampHashMatch, category: 'crypto' },
-    { label: 'Merkle Root Valid', passed: cryptoChecks.merkleRootValid, category: 'crypto' },
-    { label: 'Version Chain Valid', passed: cryptoChecks.versionChainValid, category: 'chain' },
-    { label: 'Version Hash Valid', passed: cryptoChecks.versionHashValid, category: 'chain' },
-    { label: 'Document Approved', passed: authorityChecks.documentApproved, category: 'authority' },
-    { label: 'Organization Verified', passed: authorityChecks.organizationVerified, category: 'authority' },
+      { label: 'Text Hash Verify', passed: cryptoChecks.textHashMatch, category: 'crypto' },
+      { label: 'Image Hash Verify', passed: cryptoChecks.imageHashMatch, category: 'crypto' },
+      { label: 'Signature Hash Verify', passed: cryptoChecks.signatureHashMatch, category: 'crypto' },
+      { label: 'Stamp Hash Verify', passed: cryptoChecks.stampHashMatch, category: 'crypto' },
+      { label: 'Merkle Root Verify', passed: cryptoChecks.merkleRootValid, category: 'crypto' },
+      { label: 'Version Chain Verify', passed: cryptoChecks.versionChainValid, category: 'chain' },
+      { label: 'Version Hash Verify', passed: cryptoChecks.versionHashValid, category: 'chain' },
+      { label: 'Document Approved', passed: authorityChecks.documentApproved, category: 'authority' },
+      { label: 'Organization Verified', passed: authorityChecks.organizationVerified, category: 'authority' },
   ];
 
   const totalChecks = allChecks.filter(c => c.passed !== undefined).length;
   const allPassed = result.verified === true;
 
   const statusTone = allPassed ? 'success' : 'danger';
-  const statusLabel = allPassed ? 'VERIFIED' : 'VERIFICATION FAILED';
+    const statusLabel = allPassed ? 'VERIFIED' : 'VERIFY FAILED';
+
+  // Tamper Score: 100% if allPassed, 0% if not
+  const tamperScore = allPassed ? 100 : 0;
 
   return (
     <Card className="space-y-5 p-6">
-      {/* Overall Status */}
-      <div className="flex items-center justify-center gap-4 pb-4 border-b border-white/10">
+      {/* Overall Status & Tamper Score */}
+      <div className="flex flex-col items-center justify-center gap-2 pb-4 border-b border-white/10">
         <div className="flex items-center justify-center w-20 h-20 rounded-full" style={{
           background: allPassed ? 'radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 70%)' : 'radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0) 70%)'
         }}>

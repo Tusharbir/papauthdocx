@@ -107,7 +107,14 @@ const AllUsersList = () => {
               </div>
               <div className={`mt-4 grid grid-cols-2 gap-2 text-xs ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                 <div>
-                  <span className={mode === 'dark' ? 'text-slate-500' : 'text-slate-400'}>ID:</span> {user.id}
+                  <span className={mode === 'dark' ? 'text-slate-500' : 'text-slate-400'}>ID:</span>
+                  <span
+                    className="overflow-hidden text-ellipsis whitespace-nowrap align-middle inline-block ml-1"
+                    style={{ maxWidth: '16rem', minWidth: '6rem', verticalAlign: 'middle' }}
+                    title={user.id}
+                  >
+                    {user.id}
+                  </span>
                 </div>
                 <div>
                   <span className={mode === 'dark' ? 'text-slate-500' : 'text-slate-400'}>Org ID:</span> {user.orgId || 'N/A'}
