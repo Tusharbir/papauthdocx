@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import useAuthStore from '../../store/authStore';
+import organizationApi from '../../api/organizationApi';
 import { useDropzone } from 'react-dropzone';
 import { useQuery } from '@tanstack/react-query';
 import Card from '../ui/Card';
@@ -24,10 +26,21 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
     docId: '',
     type: 'other',
     holderName: '',
-    degreeTitle: '',
-    issueDate: '',
-    institution: ''
+    title: '',
+    issueDate: ''
   });
+  const [orgList, setOrgList] = useState([]);
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+  const role = useAuthStore((state) => state.role);
+
+  // Fetch organizations if superadmin
+  useEffect(() => {
+    if (role === 'superadmin') {
+      organizationApi.list().then((orgs) => {
+        setOrgList(orgs);
+      });
+    }
+  }, [role]);
   
   const mode = useUIStore((state) => state.mode);
   const inputClass =
@@ -103,12 +116,18 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (!textHash) {
       setError('Please upload a text file first');
       return;
     }
-
+    if (!metadata.docId || !metadata.holderName) {
+      setError('Please fill in required metadata fields');
+      return;
+    }
+    if (role === 'superadmin' && !selectedOrgId) {
+      setError('Please select an organization');
+      return;
+    }
     const documentData = {
       ...metadata,
       textHash,
@@ -117,7 +136,9 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
       stampHash: '', // No stamp for text files
       merkleRoot: textHash // For text files, merkle root is just the text hash
     };
-    
+    if (role === 'superadmin') {
+      documentData.targetOrgId = Number(selectedOrgId);
+    }
     onSubmit(documentData);
   };
 
@@ -208,8 +229,25 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
         <Card>
           <h3 className="text-lg font-semibold mb-4">Document Metadata</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Superadmin: Organization dropdown */}
+            {role === 'superadmin' && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">Organization <span className="text-rose-400">*</span></label>
+                <select
+                  required
+                  className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
+                  value={selectedOrgId}
+                  onChange={e => setSelectedOrgId(e.target.value)}
+                >
+                  <option value="">Select organization</option>
+                  {orgList.map(org => (
+                    <option key={org.id || org.orgId} value={org.id || org.orgId}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
-              <label className="block text-sm font-medium mb-2">Document ID</label>
+              <label className="block text-sm font-medium mb-2">Document ID <span className="text-rose-400">*</span></label>
               <input
                 type="text"
                 name="docId"
@@ -220,7 +258,7 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Document Type</label>
+              <label className="block text-sm font-medium mb-2">Document Type <span className="text-rose-400">*</span></label>
               <select
                 name="type"
                 value={metadata.type}
@@ -236,7 +274,7 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Holder Name</label>
+              <label className="block text-sm font-medium mb-2">Holder Name <span className="text-rose-400">*</span></label>
               <input
                 type="text"
                 name="holderName"
@@ -247,17 +285,18 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Title/Description</label>
+              <label className="block text-sm font-medium mb-2">Title</label>
               <input
                 type="text"
-                name="degreeTitle"
-                value={metadata.degreeTitle}
+                name="title"
+                value={metadata.title}
                 onChange={handleMetadataChange}
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
+                placeholder="Document Title (optional)"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Issue Date</label>
+              <label className="block text-sm font-medium mb-2">Issue Date <span className="text-rose-400">*</span></label>
               <input
                 type="date"
                 name="issueDate"
@@ -267,19 +306,7 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Institution/Issuer</label>
-              <input
-                type="text"
-                name="institution"
-                value={metadata.institution}
-                onChange={handleMetadataChange}
-                className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
-                required
-              />
-            </div>
           </div>
-          
           <div className="mt-6">
             <Button type="submit" disabled={isSubmitting} className="w-full">
               {isSubmitting ? (

@@ -34,8 +34,8 @@ const navConfig = [
   
   // Admin-only features
   { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, pathTemplate: '/dashboard/{role}', roles: [USER_ROLES.ADMIN] },
-  { label: 'Org Users', icon: <PeopleOutlinedIcon />, pathTemplate: '/dashboard/{role}/users', roles: [USER_ROLES.ADMIN] },
-  { label: 'Org Audit Logs', icon: <AssignmentOutlinedIcon />, pathTemplate: '/dashboard/{role}/audit', roles: [USER_ROLES.ADMIN] },
+  { label: 'Users', icon: <PeopleOutlinedIcon />, pathTemplate: '/dashboard/{role}/users', roles: [USER_ROLES.ADMIN] },
+  { label: 'Audit Logs', icon: <AssignmentOutlinedIcon />, pathTemplate: '/dashboard/{role}/audit', roles: [USER_ROLES.ADMIN] },
   { label: 'Analytics', icon: <QueryStatsOutlinedIcon />, pathTemplate: '/dashboard/{role}/analytics', roles: [USER_ROLES.ADMIN] },
   
   // Shared features (superadmin and admin)
@@ -106,7 +106,7 @@ const Sidebar = () => {
             ? 'rgba(17,24,39,0.88)'
             : 'rgba(241,245,249,0.96)',
         borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'}`,
-        zIndex: 1100,
+        zIndex: 900,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',

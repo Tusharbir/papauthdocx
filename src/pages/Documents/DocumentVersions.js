@@ -22,7 +22,10 @@ const DocumentVersions = () => {
 
   return (
     <div>
-      <PageHeader title={`Versions for ${docId}`} subtitle="Version lineage & workflow state" />
+      <PageHeader
+        title={<span className="overflow-hidden text-ellipsis whitespace-nowrap inline-block align-bottom" style={{ maxWidth: '16rem', minWidth: '6rem', verticalAlign: 'bottom' }} title={docId}>{`Versions for ${docId}`}</span>}
+        subtitle="Version lineage & workflow state"
+      />
       {isLoading && <Loader />}
       {error && <p className="text-sm text-rose-300">{error.response?.data?.message || 'Unable to load versions.'}</p>}
       {!isLoading && !error && (

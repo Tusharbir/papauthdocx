@@ -3,6 +3,8 @@ import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { SnackbarProvider } from 'notistack';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import { AnimatePresence } from 'framer-motion';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import RoleRoute from './components/layout/RoleRoute';
@@ -151,7 +153,26 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <SnackbarProvider maxSnack={4} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+      <SnackbarProvider
+        maxSnack={4}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        action={key => (
+          <IconButton
+            aria-label="close"
+            color="inherit"
+            size="small"
+            onClick={() => {
+              // notistack exposes closeSnackbar globally
+              if (window.closeSnackbar) window.closeSnackbar(key);
+            }}
+            sx={{ p: 0.5 }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+        // Expose closeSnackbar globally for use in action
+        ref={el => { if (el) window.closeSnackbar = el.closeSnackbar; }}
+      >
         {routes}
       </SnackbarProvider>
     </ThemeProvider>

@@ -116,10 +116,10 @@ const AnalyticsDashboard = () => {
                       nameKey="name"
                       cx="50%" 
                       cy="50%" 
-                      innerRadius={60} 
-                      outerRadius={80} 
+                      innerRadius={70} 
+                      outerRadius={100} 
                       paddingAngle={4}
-                      label={({ percentage }) => `${percentage}%`}
+                      label={false}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

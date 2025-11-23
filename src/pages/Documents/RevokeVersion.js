@@ -30,7 +30,10 @@ const RevokeVersion = () => {
 
   return (
     <div>
-      <PageHeader title={`Revoke version ${versionNumber}`} subtitle={`Document ${docId}`} />
+      <PageHeader
+        title={`Revoke version ${versionNumber}`}
+        subtitle={<span className="overflow-hidden text-ellipsis whitespace-nowrap inline-block align-bottom" style={{ maxWidth: '16rem', minWidth: '6rem', verticalAlign: 'bottom' }} title={docId}>{`Document ${docId}`}</span>}
+      />
       <Card className="p-8">
         {mutation.isPending ? (
           <Loader label="Submitting" />

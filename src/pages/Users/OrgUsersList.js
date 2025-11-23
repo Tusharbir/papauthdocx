@@ -157,7 +157,14 @@ const OrgUsersList = () => {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-slate-400">
                 <div>
-                  <span className="text-slate-500">User ID:</span> {u.id}
+                  <span className="text-slate-500">User ID:</span>
+                  <span
+                    className="overflow-hidden text-ellipsis whitespace-nowrap align-middle inline-block"
+                    style={{ maxWidth: '16rem', minWidth: '6rem', verticalAlign: 'middle' }}
+                    title={u.id}
+                  >
+                    {u.id}
+                  </span>
                 </div>
                 <div>
                   <span className="text-slate-500">Role:</span> {u.role}

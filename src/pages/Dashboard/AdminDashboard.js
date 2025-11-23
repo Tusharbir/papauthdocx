@@ -70,15 +70,23 @@ const AdminDashboard = () => {
           </div>
         </Card>
         <Card className="p-6">
-          <p className="text-sm text-slate-400">Tamper score distribution</p>
-          <div className="mt-4 h-56">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" innerRadius={60} outerRadius={90} paddingAngle={4}>
+          <p className="text-sm text-slate-400">Document Status Breakdown</p>
+          <div className="mt-4" style={{ height: 280 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart margin={{ top: 32, right: 32, bottom: 32, left: 32 }}>
+                <Pie 
+                  data={pieData} 
+                  dataKey="value" 
+                  innerRadius={70} 
+                  outerRadius={100} 
+                  paddingAngle={4}
+                  label={false}
+                >
                   {pieData.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
                   ))}
                 </Pie>
+                <Tooltip wrapperStyle={{ zIndex: 9999 }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -102,8 +110,8 @@ const AdminDashboard = () => {
               documents.slice(0, 4).map((doc) => (
                 <div key={doc.docId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                   <div className="flex-1">
-                    <p className="font-semibold text-white">{doc.docId}</p>
-                    <p className="text-xs text-slate-400">{doc.type || 'Document'} • v{doc.currentVersion || 1}</p>
+                    <p className="font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-[180px]" title={doc.docId}>{doc.docId}</p>
+                    <p className="text-xs text-slate-400">{doc.type || 'Document'}  v{doc.currentVersion || 1}</p>
                   </div>
                   <Badge tone={STATUS_BADGE_TONES[doc.latestVersionStatus] || 'warning'}>
                     {doc.latestVersionStatus || WORKFLOW_STATUS.PENDING}
@@ -122,9 +130,9 @@ const AdminDashboard = () => {
               documents.slice(0, 5).map((doc) => (
                 <div key={doc.docId} className="flex items-center justify-between border-b border-white/5 pb-3">
                   <div>
-                    <p className="text-white font-medium">{doc.docId}</p>
+                    <p className="text-white font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[180px]" title={doc.docId}>{doc.docId}</p>
                     <p className="text-xs text-slate-500">
-                      {doc.latestVersionStatus === WORKFLOW_STATUS.APPROVED ? 'Approved' : doc.latestVersionStatus === WORKFLOW_STATUS.REVOKED ? 'Revoked' : 'Uploaded'} • {doc.type || 'Document'}
+                      {doc.latestVersionStatus === WORKFLOW_STATUS.APPROVED ? 'Approved' : doc.latestVersionStatus === WORKFLOW_STATUS.REVOKED ? 'Revoked' : 'Uploaded'}  {doc.type || 'Document'}
                     </p>
                   </div>
                   <span className="text-xs text-slate-500">

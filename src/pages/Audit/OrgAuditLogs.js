@@ -221,6 +221,9 @@ const OrgAuditLogs = () => {
                       <div className="font-mono text-slate-400 truncate max-w-[150px]" title={log.auditHash}>
                         {log.auditHash.substring(0, 16)}...
                       </div>
+                        <div className="font-mono text-slate-400 overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]" title={log.auditHash}>
+                          {log.auditHash}
+                        </div>
                       {log.prevAuditHash && (
                         <div className="text-slate-500 text-[10px] mt-1">
                           ← {log.prevAuditHash.substring(0, 12)}...

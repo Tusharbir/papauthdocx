@@ -80,14 +80,12 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
 
   const handleMouseDown = (e) => {
     if (!selectionMode) return;
-    
-    const rect = overlayCanvasRef.current.getBoundingClientRect();
-    const scrollLeft = containerRef.current.scrollLeft;
-    const scrollTop = containerRef.current.scrollTop;
-    
-    const x = (e.clientX - rect.left + scrollLeft) / zoom;
-    const y = (e.clientY - rect.top + scrollTop) / zoom;
-    
+    const rect = canvasRef.current.getBoundingClientRect();
+    // Calculate scaling between CSS size and canvas buffer size
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     setIsDrawing(true);
     setStartPoint({ x, y });
     setCurrentBox({ x, y, width: 0, height: 0 });
@@ -95,17 +93,13 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
 
   const handleMouseMove = (e) => {
     if (!isDrawing || !startPoint) return;
-    
-    const rect = overlayCanvasRef.current.getBoundingClientRect();
-    const scrollLeft = containerRef.current.scrollLeft;
-    const scrollTop = containerRef.current.scrollTop;
-    
-    const x = (e.clientX - rect.left + scrollLeft) / zoom;
-    const y = (e.clientY - rect.top + scrollTop) / zoom;
-    
+    const rect = canvasRef.current.getBoundingClientRect();
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
     const width = x - startPoint.x;
     const height = y - startPoint.y;
-    
     setCurrentBox({
       x: width > 0 ? startPoint.x : x,
       y: height > 0 ? startPoint.y : y,
@@ -133,36 +127,30 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
     setSelectionMode(null);
   };
 
-  const handleComplete = () => {
-    onComplete?.({
-      signature: signatureBox,
-      stamp: stampBox
-    });
-  };
 
   if (!canvas) return null;
 
   return (
-    <div className="flex h-full flex-col space-y-4">
-      {/* Control Buttons */}
-        <div className="flex flex-wrap gap-3 items-center justify-between">
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              onClick={() => setSelectionMode('signature')}
-              className={`${selectionMode === 'signature' ? 'bg-green-500' : ''}`}
-              disabled={!!signatureBox}
-            >
-              {signatureBox ? '✓ Signature' : 'Select Signature'}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => setSelectionMode('stamp')}
-              className={`${selectionMode === 'stamp' ? 'bg-blue-500' : ''}`}
-              disabled={!!stampBox}
-            >
-              {stampBox ? '✓ Stamp' : 'Select Stamp'}
-            </Button>
+    <div className="flex flex-col flex-1 w-full h-full bg-slate-900">
+      {/* Compact Header and Controls - visually separated from background */}
+      <div className="w-full bg-slate-900 border-b border-white/10 px-4 py-2 flex flex-col md:flex-row md:items-center md:justify-between gap-2 shadow-lg shadow-slate-900/40 flex-shrink-0 z-10">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+          <Button
+            type="button"
+            onClick={() => setSelectionMode('signature')}
+            className={`!px-4 !py-1 ${selectionMode === 'signature' ? 'bg-green-500' : ''}`}
+            disabled={!!signatureBox}
+          >
+            {signatureBox ? '✓ Signature' : 'Select Signature'}
+          </Button>
+          <Button
+            type="button"
+            onClick={() => setSelectionMode('stamp')}
+            className={`!px-4 !py-1 ${selectionMode === 'stamp' ? 'bg-blue-500' : ''}`}
+            disabled={!!stampBox}
+          >
+            {stampBox ? '✓ Stamp' : 'Select Stamp'}
+          </Button>
           {(signatureBox || stampBox) && (
             <Button
               type="button"
@@ -170,19 +158,18 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
                 setSignatureBox(null);
                 setStampBox(null);
               }}
-              className="bg-rose-500"
+              className="!px-4 !py-1 bg-rose-500"
             >
               Clear
             </Button>
           )}
         </div>
-        
-        {/* Simple Zoom Controls */}
+        {/* Zoom Controls */}
         <div className="flex items-center gap-2">
           <Button
             type="button"
             onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
-            className="px-4 py-2 bg-slate-700"
+            className="!px-3 !py-1 bg-slate-700"
             disabled={zoom <= 0.5}
           >
             −
@@ -191,7 +178,7 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
           <Button
             type="button"
             onClick={() => setZoom(Math.min(3, zoom + 0.25))}
-            className="px-4 py-2 bg-slate-700"
+            className="!px-3 !py-1 bg-slate-700"
             disabled={zoom >= 3}
           >
             +
@@ -199,60 +186,58 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
         </div>
       </div>
       
-      {selectionMode && (
-        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-          <p className="text-sm text-blue-300">
-            👉 Click and drag on the document to select the {selectionMode} area
-          </p>
-        </div>
-      )}
-      
-      {/* Canvas Container */}
-      <div 
-        ref={containerRef}
-        className="relative border-2 border-slate-600 rounded-lg overflow-auto bg-slate-900 flex-1 no-scrollbar"
-      >
-        <div className="inline-block min-w-full">
-          <canvas
-            ref={canvasRef}
-            className="w-auto h-auto max-w-none"
-            style={{ 
-              display: 'block',
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top center',
-              margin: '0 auto'
-            }}
-          />
-          <canvas
-            ref={overlayCanvasRef}
-            className="absolute top-0 left-0 w-auto h-auto max-w-none cursor-crosshair pointer-events-auto"
-            style={{ 
-              transform: `scale(${zoom})`,
-              transformOrigin: 'top center',
-              marginLeft: '50%',
-              translate: '-50% 0'
-            }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          />
-        </div>
-      </div>
-      
-      {/* Action Buttons */}
-      <div className="sticky bottom-0 left-0 right-0 flex gap-3 bg-slate-900/70 backdrop-blur pt-4 pb-1">
-        {(signatureBox || stampBox) && (
-          <Button type="button" onClick={handleComplete} className="flex-1">
-            ✓ Continue
-          </Button>
-        )}
-        <Button type="button" onClick={() => handleComplete({ signature: null, stamp: null })} className="flex-1 bg-slate-600">
-          Skip This Step
+      {/* Guide for user */}
+      <div className="w-full px-4 py-2 bg-slate-900 text-slate-300 text-sm border-b border-white/5 flex items-center justify-between">
+        <span>
+          Click <b>'Select Signature'</b> or <b>'Select Stamp'</b>, then drag to draw a box on the document.
+        </span>
+        <Button
+          type="button"
+          className="ml-4 bg-emerald-600 px-4 py-1 text-white"
+          onClick={() => {
+            if (onComplete) onComplete({ signatureBox, stampBox });
+          }}
+          disabled={!signatureBox && !stampBox}
+        >
+          Save
         </Button>
+      </div>
+      {/* Only render the PDF canvas and overlay here */}
+      <div
+        ref={containerRef}
+        className="flex-1 flex items-start justify-center overflow-auto bg-slate-100 dark:bg-slate-800"
+        style={{ minHeight: 0, minWidth: 0 }}
+      >
+        <div className="flex items-start justify-center w-full h-full overflow-y-auto">
+          <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 flex items-start justify-center" style={{ overflow: 'hidden', width: '100%', height: 'auto' }}>
+            <canvas
+              ref={canvasRef}
+              className="block w-full"
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                zIndex: 1
+              }}
+            />
+            <canvas
+              ref={overlayCanvasRef}
+              className="absolute top-0 left-0 w-full h-full cursor-crosshair pointer-events-auto"
+              style={{
+                width: '100%',
+                height: '100%',
+                zIndex: 10,
+                pointerEvents: 'auto'
+              }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
 };
-
-export default ROISelector;
+export default ROISelector

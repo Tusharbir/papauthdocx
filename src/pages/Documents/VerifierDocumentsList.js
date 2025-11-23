@@ -101,8 +101,20 @@ const VerifierDocumentsList = () => {
             <Card key={doc.docId} className="p-6 hover:border-blue-500/30 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/user/documents/${doc.docId}`)}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <p className="text-lg font-semibold text-white">{doc.docId}</p>
-                  <p className="text-sm text-slate-400 capitalize">{doc.type || 'Document'}</p>
+                  <p
+                    className="text-lg font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap"
+                    style={{ maxWidth: '16rem', minWidth: '6rem', width: '100%' }}
+                    title={doc.docId}
+                  >
+                    {doc.docId}
+                  </p>
+                  <p
+                    className="text-sm text-slate-400 capitalize overflow-hidden text-ellipsis whitespace-nowrap"
+                    style={{ maxWidth: '12rem', width: '100%' }}
+                    title={doc.type}
+                  >
+                    {doc.type || 'Document'}
+                  </p>
                 </div>
                 {getStatusBadge(doc.latestVersionStatus)}
               </div>

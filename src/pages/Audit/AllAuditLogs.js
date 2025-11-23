@@ -118,7 +118,7 @@ const AllAuditLogs = () => {
         <Card className="p-4">
           <p className="text-sm text-slate-400">Verifications</p>
           <p className="text-2xl font-bold text-purple-400 mt-1">
-            {logs.filter(l => l.action === 'CRYPTO_CHECK').length}
+            {logs.filter(l => l.action === 'CRYPTO_CHECK' || l.action === 'Verify').length}
           </p>
         </Card>
         <Card className="p-4">
@@ -145,7 +145,7 @@ const AllAuditLogs = () => {
           >
             <option value="all">All Actions</option>
             {uniqueActions.map((action) => (
-              <option key={action} value={action}>{action}</option>
+              <option key={action} value={action}>{action === 'CRYPTO_CHECK' ? 'Verify' : (action === 'Verify' ? 'Verify' : action)}</option>
             ))}
           </select>
           <div className="flex items-center text-sm text-slate-400">
@@ -191,7 +191,7 @@ const AllAuditLogs = () => {
                     </td>
                     <td className="p-4">
                       <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${getActionBadge(log.action)}`}>
-                        {log.action}
+                        {log.action === 'CRYPTO_CHECK' ? 'Verify' : log.action}
                       </span>
                     </td>
                     <td className="p-4 text-sm">
@@ -209,6 +209,9 @@ const AllAuditLogs = () => {
                       <div className="font-mono text-slate-400 truncate max-w-[150px]" title={log.auditHash}>
                         {log.auditHash.substring(0, 16)}...
                       </div>
+                        <div className="font-mono text-slate-400 overflow-hidden text-ellipsis whitespace-nowrap max-w-[150px]" title={log.auditHash}>
+                          {log.auditHash}
+                        </div>
                       {log.prevAuditHash && (
                         <div className="text-slate-500 text-[10px] mt-1">
                           ← {log.prevAuditHash.substring(0, 12)}...
