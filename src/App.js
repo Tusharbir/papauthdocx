@@ -140,6 +140,7 @@ const App = () => {
             <Route element={<RoleRoute allowedRoles={['user', 'verifier']} />}>
               <Route path="/dashboard/user" element={<UserDashboard />} />
               <Route path="/dashboard/user/documents" element={<VerifierDocumentsList />} />
+              <Route path="/dashboard/user/documents/:docId" element={<DocumentDetails />} />
               <Route path="/dashboard/user/verify" element={<VerifyDocument />} />
               <Route path="/dashboard/user/history" element={<AnalyticsDashboard />} />
               <Route path="/dashboard/user/qr/scan" element={<ScanQR />} />

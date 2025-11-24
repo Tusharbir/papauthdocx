@@ -4,7 +4,8 @@ import cn from '../../utils/cn';
 const baseStyles =
   'inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none';
 
-const Button = ({ className = '', variant = 'primary', ...props }) => {
+
+const Button = ({ className = '', variant = 'primary', as: Component = 'button', ...props }) => {
   const mode = useUIStore((state) => state.mode);
   const isDark = mode === 'dark';
 
@@ -19,7 +20,7 @@ const Button = ({ className = '', variant = 'primary', ...props }) => {
       : 'text-slate-600 hover:text-slate-900 focus-visible:ring-blue-200 focus-visible:ring-offset-white',
   };
 
-  return <button className={cn(baseStyles, variants[variant], className)} {...props} />;
+  return <Component className={cn(baseStyles, variants[variant], className)} {...props} />;
 };
 
 export default Button;

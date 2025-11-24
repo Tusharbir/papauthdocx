@@ -120,7 +120,14 @@ const VerifierDocumentsList = () => {
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((doc) => (
-              <Card key={doc.docId} className="p-6 hover:border-blue-500/30 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/user/documents/${doc.docId}`)}>
+              <Card
+                key={doc.docId}
+                className="p-6 hover:border-blue-500/30 transition-colors cursor-pointer"
+                onClick={() => {
+                  console.log('Card clicked', doc.docId);
+                  navigate(`/dashboard/user/documents/${doc.docId}`);
+                }}
+              >
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <p
