@@ -18,6 +18,10 @@ const DocumentsList = () => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
 
+  const role = useAuthStore((state) => state.role);
+  const isSuperadmin = role === 'superadmin';
+  const basePath = `/dashboard/${isSuperadmin ? 'superadmin' : 'admin'}`;
+
   const { data: documents = [], isLoading, error } = useQuery({
     queryKey: ['documents'],
     queryFn: documentApi.getAll,
@@ -31,14 +35,14 @@ const DocumentsList = () => {
   const user = useAuthStore((state) => state.user);
   const userId = user?.id || user?.userId;
 
-  // Only show documents created by the logged-in user
+  // Admins see their own uploads; superadmin sees everything
   const filtered = documents.filter((doc) => {
     const matchesSearch = search === '' || 
       doc.docId?.toLowerCase().includes(search.toLowerCase()) ||
       doc.type?.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === 'all' || doc.type === typeFilter;
     // Only show if createdBy matches userId (from latestVersionHash info)
-    const matchesUser = !userId || doc.createdBy === userId || doc.createdByUserId === userId;
+    const matchesUser = isSuperadmin || !userId || doc.createdBy === userId || doc.createdByUserId === userId;
     return matchesSearch && matchesType && matchesUser;
   });
 
@@ -64,7 +68,7 @@ const DocumentsList = () => {
         title="Documents"
         subtitle="Manage and browse registered documents"
         action={
-          <Link to="/dashboard/admin/upload">
+          <Link to={`${basePath}/upload`}>
             <Button>+ Upload Document</Button>
           </Link>
         }
@@ -125,7 +129,7 @@ const DocumentsList = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Link to={`/dashboard/admin/documents/${doc.docId}`}>
+                <Link to={`${basePath}/documents/${doc.docId}`}>
                   <Card className="p-6 transition-all hover:scale-[1.02] cursor-pointer">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
