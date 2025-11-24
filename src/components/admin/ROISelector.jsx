@@ -12,7 +12,7 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPoint, setStartPoint] = useState(null);
   const [currentBox, setCurrentBox] = useState(null);
-  const [zoom, setZoom] = useState(0.5);
+
   
   const canvasRef = useRef(null);
   const overlayCanvasRef = useRef(null);
@@ -39,40 +39,40 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
     // Draw signature box
     if (signatureBox) {
       ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 2 / zoom;
+      ctx.lineWidth = 2;
       ctx.strokeRect(signatureBox.x, signatureBox.y, signatureBox.width, signatureBox.height);
       ctx.fillStyle = 'rgba(16, 185, 129, 0.1)';
       ctx.fillRect(signatureBox.x, signatureBox.y, signatureBox.width, signatureBox.height);
       
       // Label
       ctx.fillStyle = '#10b981';
-      ctx.font = `bold ${14 / zoom}px sans-serif`;
+      ctx.font = `bold 14px sans-serif`;
       ctx.fillText('SIGNATURE', signatureBox.x + 5, signatureBox.y - 5);
     }
     
     // Draw stamp box
     if (stampBox) {
       ctx.strokeStyle = '#3b82f6';
-      ctx.lineWidth = 2 / zoom;
+      ctx.lineWidth = 2;
       ctx.strokeRect(stampBox.x, stampBox.y, stampBox.width, stampBox.height);
       ctx.fillStyle = 'rgba(59, 130, 246, 0.1)';
       ctx.fillRect(stampBox.x, stampBox.y, stampBox.width, stampBox.height);
       
       // Label
       ctx.fillStyle = '#3b82f6';
-      ctx.font = `bold ${14 / zoom}px sans-serif`;
+      ctx.font = `bold 14px sans-serif`;
       ctx.fillText('STAMP', stampBox.x + 5, stampBox.y - 5);
     }
     
     // Draw current selection
     if (currentBox) {
       ctx.strokeStyle = selectionMode === 'signature' ? '#10b981' : '#3b82f6';
-      ctx.lineWidth = 2 / zoom;
-      ctx.setLineDash([5 / zoom, 5 / zoom]);
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
       ctx.strokeRect(currentBox.x, currentBox.y, currentBox.width, currentBox.height);
       ctx.setLineDash([]);
     }
-  }, [signatureBox, stampBox, currentBox, selectionMode, zoom]);
+  }, [signatureBox, stampBox, currentBox, selectionMode]);
 
   useEffect(() => {
     drawOverlay();
@@ -164,43 +164,14 @@ const ROISelector = ({ canvas, onSignatureSelect, onStampSelect, onComplete }) =
             </Button>
           )}
         </div>
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
-            className="!px-3 !py-1 bg-slate-700"
-            disabled={zoom <= 0.5}
-          >
-            −
-          </Button>
-          <span className="text-sm font-medium text-white min-w-[3.5rem] text-center">{Math.round(zoom * 100)}%</span>
-          <Button
-            type="button"
-            onClick={() => setZoom(Math.min(3, zoom + 0.25))}
-            className="!px-3 !py-1 bg-slate-700"
-            disabled={zoom >= 3}
-          >
-            +
-          </Button>
-        </div>
+        {/* Zoom controls removed as per request */}
       </div>
       
       {/* Guide for user */}
-      <div className="w-full px-4 py-2 bg-slate-900 text-slate-300 text-sm border-b border-white/5 flex items-center justify-between">
+      <div className="w-full px-4 py-2 bg-slate-900 text-slate-300 text-sm border-b border-white/5 flex items-center">
         <span>
           Click <b>'Select Signature'</b> or <b>'Select Stamp'</b>, then drag to draw a box on the document.
         </span>
-        <Button
-          type="button"
-          className="ml-4 bg-emerald-600 px-4 py-1 text-white"
-          onClick={() => {
-            if (onComplete) onComplete({ signatureBox, stampBox });
-          }}
-          disabled={!signatureBox && !stampBox}
-        >
-          Save
-        </Button>
       </div>
       {/* Only render the PDF canvas and overlay here */}
       <div

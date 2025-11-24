@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useAuthStore from '../../store/authStore';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -26,12 +27,19 @@ const DocumentsList = () => {
     ? 'border-white/10 bg-white/5 text-white placeholder-slate-400'
     : 'border-slate-300 bg-white text-slate-900 placeholder-slate-500';
 
+  // Get logged-in user ID
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || user?.userId;
+
+  // Only show documents created by the logged-in user
   const filtered = documents.filter((doc) => {
     const matchesSearch = search === '' || 
       doc.docId?.toLowerCase().includes(search.toLowerCase()) ||
       doc.type?.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === 'all' || doc.type === typeFilter;
-    return matchesSearch && matchesType;
+    // Only show if createdBy matches userId (from latestVersionHash info)
+    const matchesUser = !userId || doc.createdBy === userId || doc.createdByUserId === userId;
+    return matchesSearch && matchesType && matchesUser;
   });
 
   // Get unique document types for filter

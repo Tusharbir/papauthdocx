@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Box, Grid, Paper, Stack, Typography, Skeleton } from '@mui/material';
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
@@ -17,9 +17,14 @@ const AnalyticsDashboard = () => {
     setBreadcrumbs(['PapDocAuthX', 'Analytics']);
   }, [setBreadcrumbs]);
 
+  // Use user-specific analytics for normal users, org/global for admin/superadmin
+  const role = user?.role;
+  const isAdminOrSuperadmin = useMemo(() => role === 'admin' || role === 'superadmin', [role]);
+  const queryKey = useMemo(() => [isAdminOrSuperadmin ? 'analytics-summary' : 'user-analytics-summary'], [isAdminOrSuperadmin]);
+  const queryFn = useMemo(() => isAdminOrSuperadmin ? analyticsApi.getSummary : analyticsApi.getUserSummary, [isAdminOrSuperadmin]);
   const { data: analytics, isLoading } = useQuery({
-    queryKey: ['analytics-summary'],
-    queryFn: analyticsApi.getSummary,
+    queryKey,
+    queryFn,
   });
 
   const stats = [
@@ -55,7 +60,11 @@ const AnalyticsDashboard = () => {
         <div>
           <Typography variant="h4" fontWeight={700}>Analytics Center</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            {user?.role === 'superadmin' ? 'Global analytics across all organizations' : `Analytics for your organization`}
+            {role === 'superadmin'
+              ? 'Global analytics across all organizations'
+              : role === 'admin'
+                ? 'Analytics for your organization'
+                : 'Your document activity and stats'}
           </Typography>
         </div>
         

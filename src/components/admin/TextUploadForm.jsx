@@ -22,6 +22,7 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
   const [textHash, setTextHash] = useState('');
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [metadata, setMetadata] = useState({
     docId: '',
     type: 'other',
@@ -116,25 +117,46 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    let errors = {};
+    const docIdPattern = /^[A-Z0-9_-]+$/;
     if (!textHash) {
       setError('Please upload a text file first');
       return;
     }
-    if (!metadata.docId || !metadata.holderName) {
-      setError('Please fill in required metadata fields');
-      return;
+    if (!metadata.docId) {
+      errors.docId = 'Document ID is required';
+    } else if (metadata.docId.length < 5 || metadata.docId.length > 150) {
+      errors.docId = 'Document ID must be 5-150 characters';
+    } else if (!docIdPattern.test(metadata.docId)) {
+      errors.docId = 'Document ID must contain only uppercase letters, numbers, underscores, and hyphens';
+    }
+    if (!metadata.holderName) {
+      errors.holderName = 'Holder Name is required';
+    }
+    if (!metadata.issueDate) {
+      errors.issueDate = 'Issue Date is required';
     }
     if (role === 'superadmin' && !selectedOrgId) {
-      setError('Please select an organization');
-      return;
+      errors.selectedOrgId = 'Please select an organization';
     }
+    setFieldErrors(errors);
+    setError(null);
+    if (Object.keys(errors).length > 0) return;
     const documentData = {
-      ...metadata,
-      textHash,
-      imageHash: '', // No image for text files
-      signatureHash: '', // No signature for text files
-      stampHash: '', // No stamp for text files
-      merkleRoot: textHash // For text files, merkle root is just the text hash
+      docId: metadata.docId,
+      type: metadata.type,
+      metadata: {
+        holderName: metadata.holderName,
+        title: metadata.title,
+        issueDate: metadata.issueDate
+      },
+      hashes: {
+        textHash: textHash || '',
+        imageHash: '',
+        signatureHash: '',
+        stampHash: '',
+        merkleRoot: textHash || ''
+      }
     };
     if (role === 'superadmin') {
       documentData.targetOrgId = Number(selectedOrgId);
@@ -244,6 +266,9 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                     <option key={org.id || org.orgId} value={org.id || org.orgId}>{org.name}</option>
                   ))}
                 </select>
+                {fieldErrors.selectedOrgId && (
+                  <div className="text-xs text-rose-400 mt-1">{fieldErrors.selectedOrgId}</div>
+                )}
               </div>
             )}
             <div>
@@ -256,6 +281,9 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               />
+              {fieldErrors.docId && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.docId}</div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Document Type <span className="text-rose-400">*</span></label>
@@ -283,6 +311,9 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               />
+              {fieldErrors.holderName && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.holderName}</div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Title</label>
@@ -305,18 +336,24 @@ const TextUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               />
+              {fieldErrors.issueDate && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.issueDate}</div>
+              )}
             </div>
           </div>
           <div className="mt-6">
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader className="h-4 w-4" />
-                  Registering Document...
-                </span>
-              ) : (
-                'Register Document Hash'
-              )}
+              <span className="inline-flex items-center gap-2">
+                <span className="text-lg">🔐</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader className="h-4 w-4" />
+                    Registering Hashes...
+                  </>
+                ) : (
+                  'Register Document Hashes'
+                )}
+              </span>
             </Button>
           </div>
         </Card>

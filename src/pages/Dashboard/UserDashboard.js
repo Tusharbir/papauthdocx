@@ -1,3 +1,5 @@
+
+import { Link } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -18,7 +20,7 @@ const UserDashboard = () => (
         <p className="mt-2 text-sm text-slate-300/80">
           Browse approved documents in your organization. View metadata, versions, and status.
         </p>
-        <Button className="mt-4" onClick={() => window.location.assign('/dashboard/user/documents')}>
+        <Button className="mt-4" as={Link} to="/dashboard/user/documents">
           Browse Documents
         </Button>
       </Card>
@@ -36,19 +38,12 @@ const UserDashboard = () => (
             </li>
           ))}
         </ul>
-        <Button className="mt-4" onClick={() => window.location.assign('/verify')}>
+        <Button className="mt-4" as={Link} to="/dashboard/user/verify">
           Go to verify
         </Button>
       </Card>
     </div>
-    <Card className="p-6">
-      <p className="text-sm uppercase tracking-[0.4em] text-emerald-300">QR scanning</p>
-      <h3 className="mt-3 text-2xl font-semibold">Scan from field teams</h3>
-      <p className="mt-2 text-sm text-slate-300/80">Use the QR scanner to instantly check tamper states for documents in circulation.</p>
-      <Button className="mt-4" variant="secondary" onClick={() => window.location.assign('/qr/scan')}>
-        Open QR scanner
-      </Button>
-    </Card>
+    {/* QR scanning card removed for normal users */}
   </div>
 );
 

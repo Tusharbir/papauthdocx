@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import useAuthStore from '../../store/authStore';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
@@ -30,13 +31,20 @@ const VerifierDocumentsList = () => {
     queryFn: documentApi.getAll,
   });
 
+  // Get logged-in user ID
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id || user?.userId;
+
+  // Only show documents created by the logged-in user
   const filtered = documents.filter((doc) => {
     const matchesSearch = search === '' || 
       doc.docId?.toLowerCase().includes(search.toLowerCase()) ||
       doc.type?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || doc.latestVersionStatus === statusFilter;
     const matchesType = typeFilter === 'all' || doc.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    // Only show if createdBy matches userId (from latestVersionHash info)
+    const matchesUser = !userId || doc.createdBy === userId || doc.createdByUserId === userId;
+    return matchesSearch && matchesStatus && matchesType && matchesUser;
   });
 
   const getStatusBadge = (status) => {

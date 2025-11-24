@@ -17,6 +17,7 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
   const [hashes, setHashes] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [showROISelector, setShowROISelector] = useState(false);
   const [pdfCanvas, setPdfCanvas] = useState(null);
   const [signatureBox, setSignatureBox] = useState(null);
@@ -140,18 +141,29 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    let errors = {};
+    const docIdPattern = /^[A-Z0-9_-]+$/;
     if (!hashes || !file) {
       setError('Please select a PDF document first and complete hash extraction');
       return;
     }
-    if (!metadata.docId || !metadata.holderName) {
-      setError('Please fill in required metadata fields');
-      return;
+    if (!metadata.docId) {
+      errors.docId = 'Document ID is required';
+    } else if (!docIdPattern.test(metadata.docId)) {
+      errors.docId = 'Document ID must contain only uppercase letters, numbers, underscores, and hyphens';
+    }
+    if (!metadata.holderName) {
+      errors.holderName = 'Holder Name is required';
+    }
+    if (!metadata.issueDate) {
+      errors.issueDate = 'Issue Date is required';
     }
     if (role === 'superadmin' && !selectedOrgId) {
-      setError('Please select an organization');
-      return;
+      errors.selectedOrgId = 'Please select an organization';
     }
+    setFieldErrors(errors);
+    setError(null);
+    if (Object.keys(errors).length > 0) return;
     const payload = {
       docId: metadata.docId,
       type: metadata.type,
@@ -164,10 +176,11 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
         mimeType: file.type
       },
       hashes: {
-        textHash: hashes.textHash,
-        imageHash: hashes.imageHash,
-        signatureHash: hashes.signatureHash,
-        stampHash: hashes.stampHash
+        textHash: hashes?.textHash || '',
+        imageHash: hashes?.imageHash || '',
+        signatureHash: hashes?.signatureHash || '',
+        stampHash: hashes?.stampHash || '',
+        merkleRoot: hashes?.merkleRoot || ''
       }
     };
     if (role === 'superadmin') {
@@ -318,17 +331,23 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
                     <option key={org.id || org.orgId} value={org.id || org.orgId}>{org.name}</option>
                   ))}
                 </select>
+                {fieldErrors.selectedOrgId && (
+                  <div className="text-xs text-rose-400 mt-1">{fieldErrors.selectedOrgId}</div>
+                )}
               </div>
             )}
             <div className="space-y-2">
               <label className="text-sm font-semibold">Document ID <span className="text-rose-400">*</span></label>
               <input
                 required
-                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
+                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass} ${fieldErrors.docId ? 'border-rose-400' : ''}`}
                 value={metadata.docId}
                 onChange={(e) => setMetadata(prev => ({ ...prev, docId: e.target.value }))}
                 placeholder="DOC_2024_001"
               />
+              {fieldErrors.docId && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.docId}</div>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold">Document Type <span className="text-rose-400">*</span></label>
@@ -348,11 +367,14 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
               <label className="text-sm font-semibold">Holder Name <span className="text-rose-400">*</span></label>
               <input
                 required
-                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
+                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass} ${fieldErrors.holderName ? 'border-rose-400' : ''}`}
                 value={metadata.holderName}
                 onChange={(e) => setMetadata(prev => ({ ...prev, holderName: e.target.value }))}
                 placeholder="John Doe"
               />
+              {fieldErrors.holderName && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.holderName}</div>
+              )}
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold">Title</label>
@@ -367,10 +389,13 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
               <label className="text-sm font-semibold">Issue Date <span className="text-rose-400">*</span></label>
               <input
                 type="date"
-                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
+                className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass} ${fieldErrors.issueDate ? 'border-rose-400' : ''}`}
                 value={metadata.issueDate}
                 onChange={(e) => setMetadata(prev => ({ ...prev, issueDate: e.target.value }))}
               />
+              {fieldErrors.issueDate && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.issueDate}</div>
+              )}
             </div>
           </div>
           <Button
@@ -378,7 +403,10 @@ const PDFUploadForm = ({ onSubmit, isSubmitting }) => {
             className="w-full mt-6"
             disabled={isSubmitting || !hashes || processing}
           >
-            {isSubmitting ? 'Registering Hashes...' : '🔐 Register Document Hashes'}
+            <span className="inline-flex items-center gap-2">
+              <span className="text-lg">🔐</span>
+              {isSubmitting ? 'Registering Hashes...' : 'Register Document Hashes'}
+            </span>
           </Button>
         </Card>
       )}

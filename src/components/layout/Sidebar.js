@@ -50,7 +50,7 @@ const navConfig = [
   { label: 'Dashboard', icon: <SpaceDashboardOutlinedIcon />, pathTemplate: '/dashboard/{role}', roles: [USER_ROLES.VERIFIER] },
   { label: 'Documents', icon: <DescriptionOutlinedIcon />, pathTemplate: '/dashboard/{role}/documents', roles: [USER_ROLES.VERIFIER] },
   { label: 'Verify Document', icon: <VerifiedOutlinedIcon />, pathTemplate: '/dashboard/{role}/verify', roles: [USER_ROLES.VERIFIER] },
-  { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, pathTemplate: '/dashboard/{role}/qr/scan', roles: [USER_ROLES.VERIFIER] },
+  // { label: 'Scan QR', icon: <QrCode2OutlinedIcon />, pathTemplate: '/dashboard/{role}/qr/scan', roles: [USER_ROLES.VERIFIER] },
   { label: 'History', icon: <HistoryOutlinedIcon />, pathTemplate: '/dashboard/{role}/history', roles: [USER_ROLES.VERIFIER] },
 ];
 
