@@ -1,8 +1,7 @@
 # PapDocAuthX: A Comprehensive Technical Thesis
 ## Advanced Database Technologies & Multi-Modal Document Authentication System
 
-**Author**: Lovepreet Singh Virdi  
-**Institution**: Advanced Database Technologies (ADT) - Fall 2025  
+Advanced Database Technologies (ADT) - Fall 2025  
 **Date**: November 19, 2025  
 **Repository**: PapDocAuth-X (lovepreet-singh-virdi)
 

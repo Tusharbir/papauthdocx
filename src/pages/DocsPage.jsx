@@ -4,7 +4,8 @@ import Footer from '../components/Footer';
 import Card from '../components/ui/Card';
 
 // Default to shared Gamma URL but allow override via env for flexibility.
-const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
+// const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
+const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-0c8nogy.gamma.site/';
 
 const userGuides = [
   {
