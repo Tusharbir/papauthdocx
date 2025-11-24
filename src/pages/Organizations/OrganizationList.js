@@ -44,6 +44,7 @@ const OrganizationList = () => {
   // Get unique organization types from actual data
   const uniqueTypes = [...new Set(orgs.map(o => o.type).filter(Boolean))];
 
+
   return (
     <div>
       <PageHeader
@@ -83,13 +84,6 @@ const OrganizationList = () => {
                 <Badge tone="info">{org.type}</Badge>
               </div>
               <div className="mt-4 flex gap-2">
-                <Button
-                  className="flex-1"
-                  variant="secondary"
-                  onClick={() => window.location.assign(`/dashboard/superadmin/organizations/${org.id}/admins`)}
-                >
-                  Manage admins
-                </Button>
                 <Button className="flex-1" variant="ghost" onClick={() => setDetail(org)}>
                   View profile
                 </Button>

@@ -19,27 +19,25 @@ const VerificationResultCard = ({ result }) => {
   // Parse verification result with 9-level checks
   const cryptoChecks = result.cryptographicVerification || {};
   const authorityChecks = result.authorityValidation || {};
-  
+
   const allChecks = [
-      { label: 'Text Hash Verify', passed: cryptoChecks.textHashMatch, category: 'crypto' },
-      { label: 'Image Hash Verify', passed: cryptoChecks.imageHashMatch, category: 'crypto' },
-      { label: 'Signature Hash Verify', passed: cryptoChecks.signatureHashMatch, category: 'crypto' },
-      { label: 'Stamp Hash Verify', passed: cryptoChecks.stampHashMatch, category: 'crypto' },
-      { label: 'Merkle Root Verify', passed: cryptoChecks.merkleRootValid, category: 'crypto' },
-      { label: 'Version Chain Verify', passed: cryptoChecks.versionChainValid, category: 'chain' },
-      { label: 'Version Hash Verify', passed: cryptoChecks.versionHashValid, category: 'chain' },
-      { label: 'Document Approved', passed: authorityChecks.documentApproved, category: 'authority' },
-      { label: 'Organization Verified', passed: authorityChecks.organizationVerified, category: 'authority' },
+    { label: 'Text Hash Verify', passed: cryptoChecks.textHashMatch, category: 'crypto' },
+    { label: 'Image Hash Verify', passed: cryptoChecks.imageHashMatch, category: 'crypto' },
+    { label: 'Signature Hash Verify', passed: cryptoChecks.signatureHashMatch, category: 'crypto' },
+    { label: 'Stamp Hash Verify', passed: cryptoChecks.stampHashMatch, category: 'crypto' },
+    { label: 'Merkle Root Verify', passed: cryptoChecks.merkleRootValid, category: 'crypto' },
+    { label: 'Version Chain Verify', passed: cryptoChecks.versionChainValid, category: 'chain' },
+    { label: 'Version Hash Verify', passed: cryptoChecks.versionHashValid, category: 'chain' },
+    { label: 'Document Approved', passed: authorityChecks.documentApproved, category: 'authority' },
+    { label: 'Organization Verified', passed: authorityChecks.organizationVerified, category: 'authority' },
   ];
 
   const totalChecks = allChecks.filter(c => c.passed !== undefined).length;
   const allPassed = result.verified === true;
 
   const statusTone = allPassed ? 'success' : 'danger';
-    const statusLabel = allPassed ? 'VERIFIED' : 'VERIFY FAILED';
+  const statusLabel = allPassed ? 'VERIFIED' : 'VERIFY FAILED';
 
-  // Tamper Score: 100% if allPassed, 0% if not
-  const tamperScore = allPassed ? 100 : 0;
 
   return (
     <Card className="space-y-5 p-6">

@@ -1,3 +1,4 @@
+
 import axiosInstance from './axiosInstance';
 import useAuthStore from '../store/authStore';
 
@@ -9,6 +10,13 @@ export const analyticsApi = {
 
     const { data } = await axiosInstance.get(url);
     // Controller responses use { success: true, data: ... }
+    return data.data || data;
+  },
+  getUserSummary: async () => {
+    // Authenticated user-specific analytics
+    const { token } = useAuthStore.getState();
+    if (!token) return null;
+    const { data } = await axiosInstance.get('/api/analytics/user-summary');
     return data.data || data;
   },
 };

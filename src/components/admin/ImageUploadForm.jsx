@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useQuery } from '@tanstack/react-query';
 import Card from '../ui/Card';
@@ -9,12 +9,15 @@ import useUIStore from '../../store/uiStore';
 import { extractTextFromImage, extractImageHashFromImage, extractROIHash, computeMerkleRoot } from '../../utils/hashExtraction';
 import { metadataApi } from '../../api/metadataApi';
 import ROISelector from './ROISelector';
+import useAuthStore from '../../store/authStore';
+import organizationApi from '../../api/organizationApi';
 
 const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
   const [file, setFile] = useState(null);
   const [hashes, setHashes] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [showROISelector, setShowROISelector] = useState(false);
   const [imageCanvas, setImageCanvas] = useState(null);
   const { data: documentTypesData } = useQuery({
@@ -28,10 +31,21 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
     docId: '',
     type: 'certificate',
     holderName: '',
-    degreeTitle: '',
-    issueDate: '',
-    institution: ''
+    title: '',
+    issueDate: ''
   });
+  const [orgList, setOrgList] = useState([]);
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+  const role = useAuthStore((state) => state.role);
+
+  // Fetch organizations if superadmin
+  useEffect(() => {
+    if (role === 'superadmin') {
+      organizationApi.list().then((orgs) => {
+        setOrgList(orgs);
+      });
+    }
+  }, [role]);
   
   const mode = useUIStore((state) => state.mode);
   const inputClass =
@@ -51,20 +65,23 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
     try {
       // Extract text using OCR (Tesseract.js)
       const textHash = await extractTextFromImage(imageFile);
-      
       // Extract image hash from image file (not PDF)
       const imageHash = await extractImageHashFromImage(imageFile);
-      
+      // Always compute merkleRoot (even before ROI)
+      const merkleRoot = await computeMerkleRoot(
+        textHash,
+        imageHash,
+        '',
+        ''
+      );
       const extractedHashes = {
         textHash,
         imageHash,
         signatureHash: '',
         stampHash: '',
-        merkleRoot: ''
+        merkleRoot
       };
-      
       setHashes(extractedHashes);
-      
       // Render image to canvas for ROI selection
       const img = new Image();
       const reader = new FileReader();
@@ -81,7 +98,6 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
         img.src = e.target.result;
       };
       reader.readAsDataURL(imageFile);
-      
       setProcessing(false);
     } catch (err) {
       console.error('Error processing image:', err);
@@ -119,12 +135,12 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
       const signatureHash = signature ? await extractROIHash(imageCanvas, signature) : '';
       const stampHash = stamp ? await extractROIHash(imageCanvas, stamp) : '';
       
-      const merkleRoot = await computeMerkleRoot([
+      const merkleRoot = await computeMerkleRoot(
         hashes.textHash,
         hashes.imageHash,
         signatureHash,
         stampHash
-      ]);
+      );
 
       setHashes({
         ...hashes,
@@ -142,12 +158,12 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
     setShowROISelector(false);
     
     // Compute merkle root without signature/stamp hashes
-    const merkleRoot = await computeMerkleRoot([
+    const merkleRoot = await computeMerkleRoot(
       hashes.textHash,
       hashes.imageHash,
       '',
       ''
-    ]);
+    );
 
     setHashes({
       ...hashes,
@@ -162,20 +178,50 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    let errors = {};
+    const docIdPattern = /^[A-Z0-9_-]+$/;
     if (!hashes || !hashes.merkleRoot) {
       setError('Please upload an image first and complete hash extraction');
       return;
     }
-
+    if (!metadata.docId) {
+      errors.docId = 'Document ID is required';
+    } else if (metadata.docId.length < 5 || metadata.docId.length > 150) {
+      errors.docId = 'Document ID must be 5-150 characters';
+    } else if (!docIdPattern.test(metadata.docId)) {
+      errors.docId = 'Document ID must contain only uppercase letters, numbers, underscores, and hyphens';
+    }
+    if (!metadata.holderName) {
+      errors.holderName = 'Holder Name is required';
+    }
+    if (!metadata.issueDate) {
+      errors.issueDate = 'Issue Date is required';
+    }
+    if (role === 'superadmin' && !selectedOrgId) {
+      errors.selectedOrgId = 'Please select an organization';
+    }
+    setFieldErrors(errors);
+    setError(null);
+    if (Object.keys(errors).length > 0) return;
     const documentData = {
-      ...metadata,
-      textHash: hashes.textHash,
-      imageHash: hashes.imageHash,
-      signatureHash: hashes.signatureHash || '',
-      stampHash: hashes.stampHash || '',
-      merkleRoot: hashes.merkleRoot
+      docId: metadata.docId,
+      type: metadata.type,
+      metadata: {
+        holderName: metadata.holderName,
+        title: metadata.title,
+        issueDate: metadata.issueDate
+      },
+      hashes: {
+        textHash: hashes?.textHash || '',
+        imageHash: hashes?.imageHash || '',
+        signatureHash: hashes?.signatureHash || '',
+        stampHash: hashes?.stampHash || '',
+        merkleRoot: hashes?.merkleRoot || ''
+      }
     };
-    
+    if (role === 'superadmin') {
+      documentData.targetOrgId = Number(selectedOrgId);
+    }
     onSubmit(documentData);
   };
 
@@ -257,18 +303,6 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium block mb-1">Signature Hash</label>
-              <div className={`font-mono text-xs p-2 rounded border ${inputClass} break-all`}>
-                {hashes.signatureHash || 'Not selected'}
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium block mb-1">Stamp Hash</label>
-              <div className={`font-mono text-xs p-2 rounded border ${inputClass} break-all`}>
-                {hashes.stampHash || 'Not selected'}
-              </div>
-            </div>
-            <div>
               <label className="text-sm font-medium block mb-1">Merkle Root (Final Hash)</label>
               <div className={`font-mono text-xs p-2 rounded border ${inputClass} break-all font-bold`}>
                 {hashes.merkleRoot || 'Pending ROI selection...'}
@@ -283,6 +317,23 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
         <Card>
           <h3 className="text-lg font-semibold mb-4">Document Metadata</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Superadmin: Organization dropdown */}
+            {role === 'superadmin' && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">Organization <span className="text-rose-400">*</span></label>
+                <select
+                  required
+                  className={`w-full px-3 py-2 rounded-md border ${inputClass} ${fieldErrors.selectedOrgId ? 'border-rose-400' : ''}`}
+                  value={selectedOrgId}
+                  onChange={e => setSelectedOrgId(e.target.value)}
+                >
+                  <option value="">Select organization</option>
+                  {orgList.map(org => (
+                    <option key={org.id || org.orgId} value={org.id || org.orgId}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-medium mb-2">Document ID <span className="text-rose-400">*</span></label>
               <input
@@ -293,6 +344,9 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               />
+              {fieldErrors.docId && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.docId}</div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Document Type <span className="text-rose-400">*</span></label>
@@ -320,16 +374,23 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
                 required
               />
+              {fieldErrors.holderName && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.holderName}</div>
+              )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Degree/Title</label>
+              <label className="block text-sm font-medium mb-2">Title</label>
               <input
                 type="text"
-                name="degreeTitle"
-                value={metadata.degreeTitle}
+                name="title"
+                value={metadata.title}
                 onChange={handleMetadataChange}
                 className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
+                placeholder="Document Title (optional)"
               />
+              {fieldErrors.issueDate && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.issueDate}</div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Issue Date <span className="text-rose-400">*</span></label>
@@ -342,29 +403,20 @@ const ImageUploadForm = ({ onSubmit, isSubmitting }) => {
                 required
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Institution</label>
-              <input
-                type="text"
-                name="institution"
-                value={metadata.institution}
-                onChange={handleMetadataChange}
-                className={`w-full px-3 py-2 rounded-md border ${inputClass}`}
-                required
-              />
-            </div>
           </div>
-          
           <div className="mt-6">
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader className="h-4 w-4" />
-                  Registering Document...
-                </span>
-              ) : (
-                'Register Document Hashes'
-              )}
+              <span className="inline-flex items-center gap-2">
+                <span className="text-lg">🔐</span>
+                {isSubmitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader className="h-4 w-4" />
+                    Registering Document...
+                  </span>
+                ) : (
+                  'Register Document Hashes'
+                )}
+              </span>
             </Button>
           </div>
         </Card>

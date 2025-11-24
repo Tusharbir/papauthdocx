@@ -13,6 +13,7 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
   const [hashes, setHashes] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [showROISelector, setShowROISelector] = useState(false);
   const [pdfCanvas, setPdfCanvas] = useState(null);
   const [signatureBox, setSignatureBox] = useState(null);
@@ -118,17 +119,28 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+    let errors = {};
+    const docIdPattern = /^[A-Z0-9_-]+$/;
     if (!hashes || !file) {
       setError('Please upload a PDF document first');
       return;
     }
-
-    if (!metadata.docId || !metadata.holderName) {
-      setError('Please fill in required metadata fields');
-      return;
+    if (!metadata.docId) {
+      errors.docId = 'Document ID is required';
+    } else if (metadata.docId.length < 5 || metadata.docId.length > 150) {
+      errors.docId = 'Document ID must be 5-150 characters';
+    } else if (!docIdPattern.test(metadata.docId)) {
+      errors.docId = 'Document ID must contain only uppercase letters, numbers, underscores, and hyphens';
     }
-
+    if (!metadata.holderName) {
+      errors.holderName = 'Holder Name is required';
+    }
+    if (!metadata.issueDate) {
+      errors.issueDate = 'Issue Date is required';
+    }
+    setFieldErrors(errors);
+    setError(null);
+    if (Object.keys(errors).length > 0) return;
     onSubmit({
       docId: metadata.docId,
       type: metadata.type,
@@ -277,6 +289,9 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
                 onChange={(e) => setMetadata(prev => ({ ...prev, docId: e.target.value }))}
                 placeholder="DOC_2024_001"
               />
+              {fieldErrors.docId && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.docId}</div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -303,6 +318,9 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
                 onChange={(e) => setMetadata(prev => ({ ...prev, holderName: e.target.value }))}
                 placeholder="John Doe"
               />
+              {fieldErrors.holderName && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.holderName}</div>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -329,10 +347,14 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
               <label className="text-sm font-semibold">Issue Date <span className="text-rose-400">*</span></label>
               <input
                 type="date"
+                max={new Date().toISOString().split('T')[0]}
                 className={`w-full rounded-2xl px-4 py-3 text-sm ${inputClass}`}
                 value={metadata.issueDate}
                 onChange={(e) => setMetadata(prev => ({ ...prev, issueDate: e.target.value }))}
               />
+              {fieldErrors.issueDate && (
+                <div className="text-xs text-rose-400 mt-1">{fieldErrors.issueDate}</div>
+              )}
             </div>
           </div>
         </Card>
