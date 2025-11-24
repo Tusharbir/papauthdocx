@@ -22,11 +22,13 @@ const StateManager = () => {
     setBreadcrumbs(['PapDocAuthX', 'Workflow']);
   }, [setBreadcrumbs]);
 
+
   // Fetch all documents
-  const { data: documents = [], isLoading: loadingDocs } = useQuery({
+  const { data: documentsData = { documents: [] }, isLoading: loadingDocs } = useQuery({
     queryKey: ['documents'],
     queryFn: documentApi.getAll,
   });
+  const documents = documentsData.documents || [];
 
   const { data: historyData, isLoading: loadingHistory } = useQuery({
     queryKey: ['workflow-history', selectedDocument?.docId],
