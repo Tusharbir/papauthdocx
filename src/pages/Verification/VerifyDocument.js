@@ -33,6 +33,7 @@ const VerifyDocument = () => {
   const [pdfCanvas, setPdfCanvas] = useState(null);
   const [verificationMode, setVerificationMode] = useState('file'); // 'file', 'manual', or 'qr'
   const [manualHash, setManualHash] = useState('');
+  // Only version hash is needed for manual entry
   const [qrData, setQrData] = useState(null);
   const [qrImage, setQrImage] = useState(null);
   
@@ -49,7 +50,7 @@ const VerifyDocument = () => {
     setShowROISelector(false);
     setPdfCanvas(null);
     mutation.reset(); // Clear previous results
-    
+
     // Clear file input elements
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (qrInputRef.current) qrInputRef.current.value = '';
@@ -60,6 +61,21 @@ const VerifyDocument = () => {
     mutationFn: (payload) => {
       // QR mode, manual mode, or file mode with QR data always use public API (supports versionHash)
       if (verificationMode === 'qr' || verificationMode === 'manual' || payload.versionHash) {
+        // Always flatten and sanitize hashes for public API
+        if (payload.hashes) {
+          const h = payload.hashes;
+          payload.textHash = typeof h.textHash === 'string' ? h.textHash : (h.textHash ? String(h.textHash) : '');
+          payload.imageHash = typeof h.imageHash === 'string' ? h.imageHash : (h.imageHash ? String(h.imageHash) : '');
+          payload.signatureHash = typeof h.signatureHash === 'string' ? h.signatureHash : (h.signatureHash ? String(h.signatureHash) : '');
+          payload.stampHash = typeof h.stampHash === 'string' ? h.stampHash : (h.stampHash ? String(h.stampHash) : '');
+          // Remove hashes object to avoid sending nested
+          delete payload.hashes;
+        }
+        // If any hash fields are still boolean/undefined, sanitize them
+        payload.textHash = typeof payload.textHash === 'string' ? payload.textHash : (payload.textHash ? String(payload.textHash) : '');
+        payload.imageHash = typeof payload.imageHash === 'string' ? payload.imageHash : (payload.imageHash ? String(payload.imageHash) : '');
+        payload.signatureHash = typeof payload.signatureHash === 'string' ? payload.signatureHash : (payload.signatureHash ? String(payload.signatureHash) : '');
+        payload.stampHash = typeof payload.stampHash === 'string' ? payload.stampHash : (payload.stampHash ? String(payload.stampHash) : '');
         return publicApi.verify(payload);
       }
       // File mode with hashes uses authenticated API if logged in (requires hashes object)
@@ -340,7 +356,7 @@ const VerifyDocument = () => {
       console.log('Submitting QR verification:', { docId: qrData.docId, versionHash: qrData.versionHash });
       mutation.mutate({ docId: qrData.docId, versionHash: qrData.versionHash });
     } else if (verificationMode === 'manual') {
-      // Manual mode: user enters docId and hash
+      // Manual mode: user enters docId and version hash only
       if (!docId || !manualHash) {
         enqueueSnackbar('Provide document ID and version hash.', { variant: 'warning' });
         return;
@@ -353,8 +369,15 @@ const VerifyDocument = () => {
         console.log('File contains QR data, verifying with QR:', qrData);
         mutation.mutate({ docId: qrData.docId, versionHash: qrData.versionHash });
       } else if (docId && hashes) {
-        // Otherwise use traditional hash verification (authenticated API requires nested hashes object)
-        mutation.mutate({ docId, hashes });
+        // Sanitize hashes: ensure all values are strings (never boolean/undefined)
+        const safeHashes = {
+          textHash: typeof hashes.textHash === 'string' ? hashes.textHash : (hashes.textHash ? String(hashes.textHash) : ''),
+          imageHash: typeof hashes.imageHash === 'string' ? hashes.imageHash : (hashes.imageHash ? String(hashes.imageHash) : ''),
+          signatureHash: typeof hashes.signatureHash === 'string' ? hashes.signatureHash : (hashes.signatureHash ? String(hashes.signatureHash) : ''),
+          stampHash: typeof hashes.stampHash === 'string' ? hashes.stampHash : (hashes.stampHash ? String(hashes.stampHash) : ''),
+          merkleRoot: typeof hashes.merkleRoot === 'string' ? hashes.merkleRoot : (hashes.merkleRoot ? String(hashes.merkleRoot) : ''),
+        };
+        mutation.mutate({ docId, hashes: safeHashes });
       } else {
         enqueueSnackbar('Provide a document ID and select a file.', { variant: 'warning' });
       }
