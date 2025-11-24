@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
@@ -10,9 +10,15 @@ import { USER_ROLES, ROLE_BADGE_TONES } from '../../constants/enums';
 
 const AllUsersList = () => {
   const mode = useUIStore((state) => state.mode);
+  const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [orgFilter, setOrgFilter] = useState('all');
+
+  useEffect(() => {
+    // Ensure breadcrumbs reflect the current page even when navigating from other sections.
+    setBreadcrumbs(['PapDocAuthX', 'All Users']);
+  }, [setBreadcrumbs]);
 
   const inputClass = mode === 'dark'
     ? 'border-white/10 bg-white/5 text-white'
@@ -73,6 +79,7 @@ const AllUsersList = () => {
           onChange={(e) => setRoleFilter(e.target.value)}
         >
           <option value="all">All roles</option>
+          <option value={USER_ROLES.SUPERADMIN}>Superadmin</option>
           <option value={USER_ROLES.ADMIN}>Admin</option>
           <option value={USER_ROLES.VERIFIER}>Verifier</option>
         </select>
@@ -95,15 +102,15 @@ const AllUsersList = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((user) => (
             <Card key={user.id} className="p-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'}`}>{user.fullName}</p>
-                  <p className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>{user.email}</p>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0 pr-2">
+                  <p className={`text-lg font-semibold ${mode === 'dark' ? 'text-white' : 'text-slate-900'} truncate`} title={user.fullName}>{user.fullName}</p>
+                  <p className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'} truncate`} title={user.email}>{user.email}</p>
                   {user.organization && (
-                    <p className={`mt-2 text-xs ${mode === 'dark' ? 'text-slate-500' : 'text-slate-500'}`}>{user.organization.name}</p>
+                    <p className={`mt-2 text-xs ${mode === 'dark' ? 'text-slate-500' : 'text-slate-500'} truncate`} title={user.organization.name}>{user.organization.name}</p>
                   )}
                 </div>
-                {getRoleBadge(user.role)}
+                <div className="shrink-0">{getRoleBadge(user.role)}</div>
               </div>
               <div className={`mt-4 grid grid-cols-2 gap-2 text-xs ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
                 <div>

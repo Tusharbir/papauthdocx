@@ -62,16 +62,16 @@ const VerificationResultCard = ({ result }) => {
       {/* Document Info */}
       {result.document && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-2 text-xs">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             <div>
               <p className="text-slate-500">Document ID</p>
-              <p className="font-mono text-white break-all leading-relaxed text-[11px] sm:text-xs md:text-sm">
+              <p className="font-mono text-white break-all break-words whitespace-pre-wrap leading-relaxed text-[11px] sm:text-xs md:text-sm">
                 {result.document.docId}
               </p>
             </div>
             <div>
               <p className="text-slate-500">Organization</p>
-              <p className="text-white break-words leading-relaxed text-[11px] sm:text-xs md:text-sm">
+              <p className="text-white break-words break-all whitespace-pre-wrap leading-relaxed text-[11px] sm:text-xs md:text-sm">
                 {result.document.organization || 'N/A'}
               </p>
             </div>
