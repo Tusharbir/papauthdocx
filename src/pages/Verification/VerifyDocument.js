@@ -59,29 +59,54 @@ const VerifyDocument = () => {
   // Use authenticated API if logged in, public API otherwise
   const mutation = useMutation({
     mutationFn: (payload) => {
-      // QR mode, manual mode, or file mode with QR data always use public API (supports versionHash)
-      if (verificationMode === 'qr' || verificationMode === 'manual' || payload.versionHash) {
-        // Always flatten and sanitize hashes for public API
-        if (payload.hashes) {
-          const h = payload.hashes;
-          payload.textHash = typeof h.textHash === 'string' ? h.textHash : (h.textHash ? String(h.textHash) : '');
-          payload.imageHash = typeof h.imageHash === 'string' ? h.imageHash : (h.imageHash ? String(h.imageHash) : '');
-          payload.signatureHash = typeof h.signatureHash === 'string' ? h.signatureHash : (h.signatureHash ? String(h.signatureHash) : '');
-          payload.stampHash = typeof h.stampHash === 'string' ? h.stampHash : (h.stampHash ? String(h.stampHash) : '');
-          // Remove hashes object to avoid sending nested
-          delete payload.hashes;
-        }
-        // If any hash fields are still boolean/undefined, sanitize them
-        payload.textHash = typeof payload.textHash === 'string' ? payload.textHash : (payload.textHash ? String(payload.textHash) : '');
-        payload.imageHash = typeof payload.imageHash === 'string' ? payload.imageHash : (payload.imageHash ? String(payload.imageHash) : '');
-        payload.signatureHash = typeof payload.signatureHash === 'string' ? payload.signatureHash : (payload.signatureHash ? String(payload.signatureHash) : '');
-        payload.stampHash = typeof payload.stampHash === 'string' ? payload.stampHash : (payload.stampHash ? String(payload.stampHash) : '');
-        return publicApi.verify(payload);
+      // Always flatten and sanitize hashes for both APIs
+      if (payload.hashes) {
+        const h = payload.hashes;
+        payload.textHash = typeof h.textHash === 'string' ? h.textHash : (h.textHash ? String(h.textHash) : '');
+        payload.imageHash = typeof h.imageHash === 'string' ? h.imageHash : (h.imageHash ? String(h.imageHash) : '');
+        payload.signatureHash = typeof h.signatureHash === 'string' ? h.signatureHash : (h.signatureHash ? String(h.signatureHash) : '');
+        payload.stampHash = typeof h.stampHash === 'string' ? h.stampHash : (h.stampHash ? String(h.stampHash) : '');
+        // Remove hashes object to avoid sending nested
+        delete payload.hashes;
       }
-      // File mode with hashes uses authenticated API if logged in (requires hashes object)
+      // If any hash fields are still boolean/undefined, sanitize them
+      payload.textHash = typeof payload.textHash === 'string' ? payload.textHash : (payload.textHash ? String(payload.textHash) : '');
+      payload.imageHash = typeof payload.imageHash === 'string' ? payload.imageHash : (payload.imageHash ? String(payload.imageHash) : '');
+      payload.signatureHash = typeof payload.signatureHash === 'string' ? payload.signatureHash : (payload.signatureHash ? String(payload.signatureHash) : '');
+      payload.stampHash = typeof payload.stampHash === 'string' ? payload.stampHash : (payload.stampHash ? String(payload.stampHash) : '');
+
+      // Always use private API for authenticated users (all modes)
       if (isAuthenticated) {
-        return verificationApi.verifyHashes(payload);
+        if (verificationMode === 'file' && payload.textHash && payload.imageHash) {
+          // Wrap hashes in 'hashes' object for private API
+          const { docId, textHash, imageHash, signatureHash, stampHash } = payload;
+          return verificationApi.verifyHashes({
+            docId,
+            hashes: {
+              textHash,
+              imageHash,
+              signatureHash,
+              stampHash
+            }
+          });
+        } else if (verificationMode === 'manual' && payload.docId && payload.versionHash) {
+          // Use dedicated private API for manual mode
+          return verificationApi.verifyVersionHash({
+            docId: payload.docId,
+            versionHash: payload.versionHash
+          });
+        } else if (verificationMode === 'qr' && payload.docId && payload.versionHash) {
+          // Use dedicated private API for QR mode
+          return verificationApi.verifyVersionHash({
+            docId: payload.docId,
+            versionHash: payload.versionHash
+          });
+        } else {
+          // Fallback to public API if payload is incomplete
+          return publicApi.verify(payload);
+        }
       } else {
+        // Unauthenticated users use public API
         return publicApi.verify(payload);
       }
     },

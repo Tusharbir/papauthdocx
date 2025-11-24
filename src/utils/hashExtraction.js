@@ -306,15 +306,12 @@ export async function renderPDFToCanvas(pdfFile, scale = 300 / 72) {
  */
 export async function computeMerkleRoot(textHash, imageHash, signatureHash, stampHash) {
   try {
-    // Level 1: Combine text + image
-    const leaf1 = await computeSHA256(textHash + imageHash);
-    
-    // Level 1: Combine signature + stamp
-    const leaf2 = await computeSHA256(signatureHash + stampHash);
-    
-    // Level 2: Combine both leaves to get root
-    const merkleRoot = await computeSHA256(leaf1 + leaf2);
-    
+    // Match backend: hash each, sort, join, hash again
+    const hashes = [textHash, imageHash, signatureHash, stampHash];
+    const hashed = await Promise.all(hashes.map(h => computeSHA256(h)));
+    const sorted = hashed.sort();
+    const concatenated = sorted.join("");
+    const merkleRoot = await computeSHA256(concatenated);
     return merkleRoot;
   } catch (error) {
     console.error('Merkle root computation failed:', error);
