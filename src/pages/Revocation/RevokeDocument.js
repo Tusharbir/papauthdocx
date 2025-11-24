@@ -12,10 +12,15 @@ const RevokeDocument = () => {
     setBreadcrumbs(['PapDocAuthX', 'Revocations']);
   }, [setBreadcrumbs]);
 
-  const { data: documents = [], isLoading } = useQuery({
+
+  const { data: documentsData = {}, isLoading } = useQuery({
     queryKey: ['documents'],
     queryFn: documentApi.getAll,
   });
+  // Support both array and object response
+  const documents = Array.isArray(documentsData)
+    ? documentsData
+    : (documentsData.documents || []);
 
   // Filter only REVOKED documents
   const revokedDocuments = documents.filter(doc => 

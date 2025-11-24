@@ -8,6 +8,7 @@ import Card from '../../components/ui/Card';
 import PageHeader from '../../components/ui/PageHeader';
 import Input from '../../components/ui/Input';
 import { USER_ROLES } from '../../constants/enums';
+import Pagination from '../../components/ui/Pagination';
 
 const OrgAuditLogs = () => {
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
@@ -15,36 +16,39 @@ const OrgAuditLogs = () => {
   const user = useAuthStore((state) => state.user);
   
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('all');
-  const [limit] = useState(100);
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(100);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     setBreadcrumbs(['PapDocAuthX', 'Audit Logs', 'Organization']);
   }, [setBreadcrumbs]);
 
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
   // Fetch organization audit logs (admin can only see their org)
   const { data: logsData, isLoading, error } = useQuery({
-    queryKey: ['audit-logs-org', user?.orgId, limit],
+    queryKey: ['audit-logs-org', user?.orgId, page, pageSize, debouncedSearch, actionFilter],
     queryFn: async () => {
-      const response = await auditApi.getByOrg(user.orgId, { limit });
+      const response = await auditApi.getByOrg(user.orgId, {
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+        search: debouncedSearch,
+        action: actionFilter
+      });
+      setTotal(response.total || 0);
       return response;
     },
     enabled: !!user?.orgId && (user?.role === USER_ROLES.ADMIN || user?.role === USER_ROLES.SUPERADMIN)
   });
 
   const logs = logsData?.logs || [];
-
-  // Filter logs
-  const filtered = logs.filter((log) => {
-    const matchesSearch = 
-      log.docId.toLowerCase().includes(search.toLowerCase()) ||
-      log.userName.toLowerCase().includes(search.toLowerCase()) ||
-      log.userEmail.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesAction = actionFilter === 'all' || log.action === actionFilter;
-    
-    return matchesSearch && matchesAction;
-  });
 
   const inputClass = mode === 'dark'
     ? 'border-white/10 bg-white/5 text-white placeholder-slate-400'
@@ -158,7 +162,11 @@ const OrgAuditLogs = () => {
             <option value="VERIFIED">Verified</option>
           </select>
           <div className="flex items-center text-sm text-slate-400">
-            Showing {filtered.length} of {logs.length} logs
+            {total === 0 ? (
+              <>Showing 0 of 0 logs</>
+            ) : (
+              <>Showing {(pageSize * (page - 1) + 1)}-{Math.min(page * pageSize, total)} of {total} logs</>
+            )}
           </div>
         </div>
       </Card>
@@ -178,14 +186,14 @@ const OrgAuditLogs = () => {
               </tr>
             </thead>
             <tbody>
-              {filtered.length === 0 ? (
+              {logs.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="p-8 text-center text-slate-400">
                     No audit logs found matching your filters.
                   </td>
                 </tr>
               ) : (
-                filtered.map((log) => (
+                logs.map((log) => (
                   <tr 
                     key={log.id} 
                     className="border-b border-white/5 hover:bg-white/5 transition-colors"
@@ -251,6 +259,12 @@ const OrgAuditLogs = () => {
           </div>
         </div>
       </Card>
+      <Pagination
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={setPage}
+      />
     </motion.div>
   );
 };

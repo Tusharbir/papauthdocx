@@ -33,6 +33,7 @@ const VerifyDocument = () => {
   const [pdfCanvas, setPdfCanvas] = useState(null);
   const [verificationMode, setVerificationMode] = useState('file'); // 'file', 'manual', or 'qr'
   const [manualHash, setManualHash] = useState('');
+  // Only version hash is needed for manual entry
   const [qrData, setQrData] = useState(null);
   const [qrImage, setQrImage] = useState(null);
   
@@ -49,7 +50,7 @@ const VerifyDocument = () => {
     setShowROISelector(false);
     setPdfCanvas(null);
     mutation.reset(); // Clear previous results
-    
+
     // Clear file input elements
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (qrInputRef.current) qrInputRef.current.value = '';
@@ -58,14 +59,54 @@ const VerifyDocument = () => {
   // Use authenticated API if logged in, public API otherwise
   const mutation = useMutation({
     mutationFn: (payload) => {
-      // QR mode, manual mode, or file mode with QR data always use public API (supports versionHash)
-      if (verificationMode === 'qr' || verificationMode === 'manual' || payload.versionHash) {
-        return publicApi.verify(payload);
+      // Always flatten and sanitize hashes for both APIs
+      if (payload.hashes) {
+        const h = payload.hashes;
+        payload.textHash = typeof h.textHash === 'string' ? h.textHash : (h.textHash ? String(h.textHash) : '');
+        payload.imageHash = typeof h.imageHash === 'string' ? h.imageHash : (h.imageHash ? String(h.imageHash) : '');
+        payload.signatureHash = typeof h.signatureHash === 'string' ? h.signatureHash : (h.signatureHash ? String(h.signatureHash) : '');
+        payload.stampHash = typeof h.stampHash === 'string' ? h.stampHash : (h.stampHash ? String(h.stampHash) : '');
+        // Remove hashes object to avoid sending nested
+        delete payload.hashes;
       }
-      // File mode with hashes uses authenticated API if logged in (requires hashes object)
+      // If any hash fields are still boolean/undefined, sanitize them
+      payload.textHash = typeof payload.textHash === 'string' ? payload.textHash : (payload.textHash ? String(payload.textHash) : '');
+      payload.imageHash = typeof payload.imageHash === 'string' ? payload.imageHash : (payload.imageHash ? String(payload.imageHash) : '');
+      payload.signatureHash = typeof payload.signatureHash === 'string' ? payload.signatureHash : (payload.signatureHash ? String(payload.signatureHash) : '');
+      payload.stampHash = typeof payload.stampHash === 'string' ? payload.stampHash : (payload.stampHash ? String(payload.stampHash) : '');
+
+      // Always use private API for authenticated users (all modes)
       if (isAuthenticated) {
-        return verificationApi.verifyHashes(payload);
+        if (verificationMode === 'file' && payload.textHash && payload.imageHash) {
+          // Wrap hashes in 'hashes' object for private API
+          const { docId, textHash, imageHash, signatureHash, stampHash } = payload;
+          return verificationApi.verifyHashes({
+            docId,
+            hashes: {
+              textHash,
+              imageHash,
+              signatureHash,
+              stampHash
+            }
+          });
+        } else if (verificationMode === 'manual' && payload.docId && payload.versionHash) {
+          // Use dedicated private API for manual mode
+          return verificationApi.verifyVersionHash({
+            docId: payload.docId,
+            versionHash: payload.versionHash
+          });
+        } else if (verificationMode === 'qr' && payload.docId && payload.versionHash) {
+          // Use dedicated private API for QR mode
+          return verificationApi.verifyVersionHash({
+            docId: payload.docId,
+            versionHash: payload.versionHash
+          });
+        } else {
+          // Fallback to public API if payload is incomplete
+          return publicApi.verify(payload);
+        }
       } else {
+        // Unauthenticated users use public API
         return publicApi.verify(payload);
       }
     },
@@ -340,7 +381,7 @@ const VerifyDocument = () => {
       console.log('Submitting QR verification:', { docId: qrData.docId, versionHash: qrData.versionHash });
       mutation.mutate({ docId: qrData.docId, versionHash: qrData.versionHash });
     } else if (verificationMode === 'manual') {
-      // Manual mode: user enters docId and hash
+      // Manual mode: user enters docId and version hash only
       if (!docId || !manualHash) {
         enqueueSnackbar('Provide document ID and version hash.', { variant: 'warning' });
         return;
@@ -353,8 +394,15 @@ const VerifyDocument = () => {
         console.log('File contains QR data, verifying with QR:', qrData);
         mutation.mutate({ docId: qrData.docId, versionHash: qrData.versionHash });
       } else if (docId && hashes) {
-        // Otherwise use traditional hash verification (authenticated API requires nested hashes object)
-        mutation.mutate({ docId, hashes });
+        // Sanitize hashes: ensure all values are strings (never boolean/undefined)
+        const safeHashes = {
+          textHash: typeof hashes.textHash === 'string' ? hashes.textHash : (hashes.textHash ? String(hashes.textHash) : ''),
+          imageHash: typeof hashes.imageHash === 'string' ? hashes.imageHash : (hashes.imageHash ? String(hashes.imageHash) : ''),
+          signatureHash: typeof hashes.signatureHash === 'string' ? hashes.signatureHash : (hashes.signatureHash ? String(hashes.signatureHash) : ''),
+          stampHash: typeof hashes.stampHash === 'string' ? hashes.stampHash : (hashes.stampHash ? String(hashes.stampHash) : ''),
+          merkleRoot: typeof hashes.merkleRoot === 'string' ? hashes.merkleRoot : (hashes.merkleRoot ? String(hashes.merkleRoot) : ''),
+        };
+        mutation.mutate({ docId, hashes: safeHashes });
       } else {
         enqueueSnackbar('Provide a document ID and select a file.', { variant: 'warning' });
       }
@@ -570,20 +618,59 @@ const VerifyDocument = () => {
       )}
       
       {/* ROI Selector Modal */}
-      <Modal open={showROISelector} onClose={handleSkipROI} size="full" maxHeight="80vh">
-        <div className="flex h-full flex-col space-y-4">
-          <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>
-          <p className="text-sm text-slate-400">
-            Draw boxes around the signature and official stamp for enhanced verification.
-          </p>
-          
-          {pdfCanvas && (
-            <ROISelector
-              canvas={pdfCanvas}
-              onComplete={handleROIComplete}
-              onSkip={handleSkipROI}
-            />
-          )}
+      <Modal open={showROISelector} onClose={handleSkipROI} size="fullscreen">
+        <div className="flex flex-col h-full w-full">
+          {/* Header */}
+          <div className="w-full px-4 pt-6 pb-2 bg-slate-900 border-b border-white/10 flex items-center justify-between relative z-40">
+            <div>
+              <h3 className="text-lg md:text-2xl font-bold text-white">Select Signature & Stamp Regions (Optional)</h3>
+              <p className="text-xs md:text-sm text-slate-400 mt-1">
+                Draw boxes around the signature and official stamp for enhanced verification.<br />
+                This step is optional - you can skip if the document has no signature/stamp.
+              </p>
+            </div>
+            <button
+              onClick={handleSkipROI}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 z-50"
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          {/* PDF Viewer Area */}
+          <div className="flex-1 flex flex-col items-center justify-center bg-[#0a1120] overflow-auto w-full">
+            {pdfCanvas ? (
+              <div className="flex-1 flex items-center justify-center w-full h-full p-2 md:p-6">
+                <div className="relative w-full max-w-full h-full max-h-full flex items-center justify-center">
+                  <ROISelector
+                    canvas={pdfCanvas}
+                    onComplete={handleROIComplete}
+                    onSkip={handleSkipROI}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-slate-400 w-full">
+                <p className="text-lg">PDF preview not available.</p>
+                <p className="text-sm mt-2">Please re-upload your document or try again.</p>
+              </div>
+            )}
+          </div>
+          {/* Sticky Footer */}
+          <div className="sticky bottom-0 left-0 right-0 z-30 flex gap-3 bg-gradient-to-t from-slate-900/90 to-transparent px-4 py-3 border-t border-slate-800">
+            <Button
+              type="button"
+              onClick={() => handleROIComplete({})}
+              className="flex-1"
+            >
+              ✓ Continue
+            </Button>
+            <Button type="button" onClick={handleSkipROI} className="flex-1 bg-slate-600">
+              Skip This Step
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>

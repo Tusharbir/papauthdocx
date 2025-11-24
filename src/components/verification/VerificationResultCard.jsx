@@ -33,7 +33,9 @@ const VerificationResultCard = ({ result }) => {
   ];
 
   const totalChecks = allChecks.filter(c => c.passed !== undefined).length;
-  const allPassed = result.verified === true;
+  // Use cryptographicallyAuthentic from backend response for status
+  // Support both API response styles (private/public)
+  const allPassed = result.cryptographicallyAuthentic === true || result.verified === true;
 
   const statusTone = allPassed ? 'success' : 'danger';
   const statusLabel = allPassed ? 'VERIFIED' : 'VERIFY FAILED';

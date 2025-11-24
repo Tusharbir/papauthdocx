@@ -2,19 +2,21 @@ import axiosInstance from './axiosInstance';
 
 export const auditApi = {
   // GET /api/audit/all - Get all audit logs (superadmin only)
+
   getAll: async (params = {}) => {
-    const { limit = 100, offset = 0 } = params;
+    const { limit = 100, offset = 0, search = '', action = '' } = params;
     const { data } = await axiosInstance.get('/api/audit/all', {
-      params: { limit, offset }
+      params: { limit, offset, search, action }
     });
     return data;
   },
 
   // GET /api/audit/org/:orgId - Get audit logs for organization (admin/superadmin)
+
   getByOrg: async (orgId, params = {}) => {
-    const { limit = 100, offset = 0 } = params;
+    const { limit = 100, offset = 0, search = '', action = '' } = params;
     const { data } = await axiosInstance.get(`/api/audit/org/${orgId}`, {
-      params: { limit, offset }
+      params: { limit, offset, search, action }
     });
     return data;
   },

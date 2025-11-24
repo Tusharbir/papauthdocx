@@ -4,7 +4,8 @@ import Footer from '../components/Footer';
 import Card from '../components/ui/Card';
 
 // Default to shared Gamma URL but allow override via env for flexibility.
-const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
+// const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
+const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-0c8nogy.gamma.site/';
 
 const userGuides = [
   {
@@ -23,26 +24,12 @@ const userGuides = [
     title: 'How to Verify a Document',
     steps: [
       '1. Go to "Verify Document" page (no login required for public users)',
-      '2. Choose verification method:',
-      '   • Upload the document file - system extracts and compares hashes',
-      '   • Upload QR code image - system decodes and verifies instantly',
-      '   • Enter document hash manually',
-      '3. View verification results showing tamper score, version chain, and authenticity',
-      '4. Check Merkle proof and document metadata for full transparency'
+      '2. Upload the document file - system extracts and compares hashes',
+      '3. View verification results showing version chain and authenticity',
+      '4. Check document metadata for full transparency'
     ]
   },
-  {
-    title: 'How to Generate & Use QR Codes',
-    steps: [
-      '1. Login as admin/superadmin',
-      '2. Navigate to "Generate QR" in dashboard',
-      '3. Select the document you want to create a QR code for',
-      '4. Click "Generate QR Code" - system creates QR with docId and versionHash',
-      '5. Download the QR code image',
-      '6. Print QR on physical documents or embed in digital certificates',
-      '7. Anyone can scan/upload this QR to verify document authenticity instantly'
-    ]
-  },
+  // QR code generation and verification is not supported in the current version
 ];
 
 const technicalDocs = [
@@ -109,7 +96,7 @@ const faqs = [
   },
   {
     q: 'What happens if someone modifies my document?',
-    a: 'Even a single pixel or character change will produce a completely different hash. The system will detect tampering and show verification failure with tamper score.'
+    a: 'Even a single pixel or character change will produce a completely different hash. The system will detect tampering and show verification failure.'
   },
   {
     q: 'How long are documents stored?',

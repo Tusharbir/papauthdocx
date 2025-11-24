@@ -368,24 +368,62 @@ const UploadDocumentForm = ({ onSubmit, isSubmitting }) => {
       )}
     </form>
 
-    {/* ROI Selector Modal */}
+    {/* ROI Selector Modal (Unified with superadmin) */}
     <Modal open={showROISelector} onClose={handleSkipROI} size="fullscreen">
-      <div className="space-y-4 pr-8">
-        <div>
-          <h3 className="text-lg font-semibold text-white">Select Signature & Stamp Regions (Optional)</h3>
-          <p className="text-sm text-slate-400 mt-2">
-            Draw boxes around the signature and official stamp for enhanced verification. 
-            This step is optional - you can skip if the document has no signature/stamp.
-          </p>
+      <div className="flex flex-col h-full w-full">
+        {/* Header */}
+        <div className="w-full px-4 pt-6 pb-2 bg-slate-900 border-b border-white/10 flex items-center justify-between relative z-40">
+          <div>
+            <h3 className="text-lg md:text-2xl font-bold text-white">Select Signature & Stamp Regions (Optional)</h3>
+            <p className="text-xs md:text-sm text-slate-400 mt-1">
+              Draw boxes around the signature and official stamp for enhanced verification.<br />
+              This step is optional - you can skip if the document has no signature/stamp.
+            </p>
+          </div>
+          <button
+            onClick={handleSkipROI}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 z-50"
+            aria-label="Close"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        
-        {pdfCanvas && (
-          <ROISelector
-            canvas={pdfCanvas}
-            onComplete={handleROIComplete}
-            onSkip={handleSkipROI}
-          />
-        )}
+        {/* PDF Viewer Area */}
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#0a1120] overflow-auto w-full">
+          {pdfCanvas ? (
+            <div className="flex-1 flex items-center justify-center w-full h-full p-2 md:p-6">
+              <div className="relative w-full max-w-full h-full max-h-full flex items-center justify-center">
+                <ROISelector
+                  canvas={pdfCanvas}
+                  onSignatureSelect={setSignatureBox}
+                  onStampSelect={setStampBox}
+                  onComplete={handleROIComplete}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-slate-400 w-full">
+              <p className="text-lg">PDF preview not available.</p>
+              <p className="text-sm mt-2">Please re-upload your document or try again.</p>
+            </div>
+          )}
+        </div>
+        {/* Sticky Footer */}
+        <div className="sticky bottom-0 left-0 right-0 z-30 flex gap-3 bg-gradient-to-t from-slate-900/90 to-transparent px-4 py-3 border-t border-slate-800">
+          <Button
+            type="button"
+            onClick={() => handleROIComplete({ signature: signatureBox, stamp: stampBox })}
+            className="flex-1"
+            disabled={!signatureBox && !stampBox}
+          >
+            ✓ Continue
+          </Button>
+          <Button type="button" onClick={handleSkipROI} className="flex-1 bg-slate-600">
+            Skip This Step
+          </Button>
+        </div>
       </div>
     </Modal>
   </>

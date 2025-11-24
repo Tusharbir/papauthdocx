@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useAuthStore from '../../store/authStore';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import Pagination from '../../components/ui/Pagination';
 import { motion } from 'framer-motion';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
@@ -16,16 +17,34 @@ import { WORKFLOW_STATUS, STATUS_BADGE_TONES } from '../../constants/enums';
 const DocumentsList = () => {
   const mode = useUIStore((state) => state.mode);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
 
   const role = useAuthStore((state) => state.role);
   const isSuperadmin = role === 'superadmin';
   const basePath = `/dashboard/${isSuperadmin ? 'superadmin' : 'admin'}`;
 
-  const { data: documents = [], isLoading, error } = useQuery({
-    queryKey: ['documents'],
-    queryFn: documentApi.getAll,
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const {
+    data: pagedData = { documents: [], total: 0 },
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['documents', { page, limit: pageSize, search: debouncedSearch, type: typeFilter }],
+    queryFn: () => documentApi.getAll({ page, limit: pageSize, search: debouncedSearch, type: typeFilter }),
+    keepPreviousData: true
   });
+  const documents = pagedData.documents || [];
+  const total = pagedData.total || 0;
 
   const inputClass = mode === 'dark'
     ? 'border-white/10 bg-white/5 text-white placeholder-slate-400'
@@ -35,18 +54,10 @@ const DocumentsList = () => {
   const user = useAuthStore((state) => state.user);
   const userId = user?.id || user?.userId;
 
-  // Admins see their own uploads; superadmin sees everything
-  const filtered = documents.filter((doc) => {
-    const matchesSearch = search === '' || 
-      doc.docId?.toLowerCase().includes(search.toLowerCase()) ||
-      doc.type?.toLowerCase().includes(search.toLowerCase());
-    const matchesType = typeFilter === 'all' || doc.type === typeFilter;
-    // Only show if createdBy matches userId (from latestVersionHash info)
-    const matchesUser = isSuperadmin || !userId || doc.createdBy === userId || doc.createdByUserId === userId;
-    return matchesSearch && matchesType && matchesUser;
-  });
+  // Filtering is now handled by backend
+  const filtered = documents;
 
-  // Get unique document types for filter
+  // Get unique document types for filter (from current page)
   const uniqueTypes = [...new Set(documents.map(d => d.type))];
 
   const getStatusBadge = (status) => {
@@ -80,12 +91,12 @@ const DocumentsList = () => {
           className={`w-full max-w-sm rounded-full border px-4 py-2 text-sm ${inputClass}`}
           placeholder="Search by document ID or type..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         />
         <select
           className={`rounded-full border px-4 py-2 text-sm ${inputClass}`}
           value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
+          onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
         >
           <option value="all">All types</option>
           {uniqueTypes.map((type) => (
@@ -184,8 +195,20 @@ const DocumentsList = () => {
             ))}
           </div>
 
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
+
           <div className={`mt-6 text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-            Showing {filtered.length} of {documents.length} documents
+            {total === 0 ? (
+              <>Showing 0 of 0 documents</>
+            ) : (
+              <>Showing {(pageSize * (page - 1) + 1)}
+              -{Math.min(page * pageSize, total)} of {total} documents</>
+            )}
           </div>
         </>
       )}

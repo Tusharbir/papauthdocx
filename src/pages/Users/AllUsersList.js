@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import Pagination from '../../components/ui/Pagination';
+import userApi from '../../api/userApi';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -12,8 +14,11 @@ const AllUsersList = () => {
   const mode = useUIStore((state) => state.mode);
   const setBreadcrumbs = useUIStore((state) => state.setBreadcrumbs);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [orgFilter, setOrgFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(50);
 
   useEffect(() => {
     // Ensure breadcrumbs reflect the current page even when navigating from other sections.
@@ -24,14 +29,29 @@ const AllUsersList = () => {
     ? 'border-white/10 bg-white/5 text-white'
     : 'border-slate-300 bg-white text-slate-900';
 
-  // Fetch all users (superadmin only)
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ['all-users'],
-    queryFn: async () => {
-      const { data } = await axiosInstance.get('/api/auth/users');
-      return data.users || [];
-    },
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Fetch paginated users (superadmin only)
+  const {
+    data: userData = { users: [], total: 0 },
+    isLoading,
+  } = useQuery({
+    queryKey: ['all-users', page, pageSize, debouncedSearch, roleFilter, orgFilter],
+    queryFn: () => userApi.getAll({
+      page,
+      limit: pageSize,
+      search: debouncedSearch,
+      role: roleFilter,
+      orgId: orgFilter,
+    }),
+    keepPreviousData: true,
   });
+  const users = userData.users || [];
+  const total = userData.total || 0;
 
   // Fetch organizations for filter
   const { data: orgs = [] } = useQuery({
@@ -42,14 +62,7 @@ const AllUsersList = () => {
     },
   });
 
-  const filtered = users.filter((user) => {
-    const matchesSearch = search === '' || 
-      user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-      user.email?.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesOrg = orgFilter === 'all' || user.orgId === parseInt(orgFilter);
-    return matchesSearch && matchesRole && matchesOrg;
-  });
+
 
   const getRoleBadge = (role) => {
     const tone = ROLE_BADGE_TONES[role] || 'default';
@@ -96,11 +109,11 @@ const AllUsersList = () => {
       </div>
       {isLoading ? (
         <p className={mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}>Loading users...</p>
-      ) : filtered.length === 0 ? (
+      ) : users.length === 0 ? (
         <EmptyState title="No users found" description="No users match your filters." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((user) => (
+          {users.map((user) => (
             <Card key={user.id} className="p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0 pr-2">
@@ -131,8 +144,16 @@ const AllUsersList = () => {
           ))}
         </div>
       )}
-      <div className={`mt-4 text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
-        Showing {filtered.length} of {users.length} users
+      <div className="mt-4 flex flex-col items-center">
+        <div className={`text-sm ${mode === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
+          Showing {users.length + (page - 1) * pageSize} of {total} users
+        </div>
+        <Pagination
+          page={page}
+          pageSize={pageSize}
+          total={total}
+          onPageChange={setPage}
+        />
       </div>
     </div>
   );

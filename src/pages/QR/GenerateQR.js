@@ -19,10 +19,11 @@ const GenerateQR = () => {
   }, [setBreadcrumbs]);
 
   // Fetch documents for dropdown
-  const { data: documents = [], isLoading: loadingDocs } = useQuery({
+  const { data, isLoading: loadingDocs } = useQuery({
     queryKey: ['documents'],
     queryFn: documentApi.getAll,
   });
+  const documents = data?.documents || [];
 
   // Filter only APPROVED documents
   const activeDocuments = documents.filter(doc => 

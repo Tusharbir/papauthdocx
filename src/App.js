@@ -46,7 +46,8 @@ const App = () => {
   const location = useLocation();
   const mode = useUIStore((state) => state.mode);
   const theme = useMemo(() => buildTheme(mode), [mode]);
-  const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
+  // const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-56qy7ln.gamma.site/';
+  const presentationUrl = process.env.REACT_APP_PRESENTATION_URL || 'https://papdocauthx-0c8nogy.gamma.site/';
 
   useEffect(() => {
     // Sync mode to the DOM so raw CSS can react to it as well
