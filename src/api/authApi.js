@@ -1,6 +1,10 @@
 import axiosInstance from './axiosInstance';
 
 const authApi = {
+  getAdminCount: async () => {
+    const { data } = await axiosInstance.get('/api/auth/admin-count');
+    return data.count || 0;
+  },
   login: async (payload) => {
     const { data } = await axiosInstance.post('/api/auth/login', payload);
     return data;

@@ -3,8 +3,9 @@ import axiosInstance from './axiosInstance';
 // All organization endpoints require superadmin role (except createVerifier which allows admin)
 export const organizationApi = {
   // GET /api/orgs - List all organizations (superadmin only)
-  list: async (params = {}) => {
-    const { data } = await axiosInstance.get('/api/orgs', { params });
+  list: async () => {
+    // Always call /api/orgs with no params to avoid React Query's extra keys
+    const { data } = await axiosInstance.get('/api/orgs');
     return data.organizations || [];
   },
   

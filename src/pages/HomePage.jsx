@@ -42,7 +42,7 @@ const useCases = [
   },
   {
     title: 'Enterprises',
-    text: 'Authenticate employment letters, NDAs and contracts with tamper score and version chain.',
+    text: 'Authenticate employment letters, NDAs and contracts with version chain.',
     emoji: '🏢',
     img: 'https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=800',
   },
@@ -74,11 +74,7 @@ const features = [
     text: 'Each version links to previous via prevVersionHash—creates immutable document evolution chain.',
     icon: '📊',
   },
-  {
-    title: 'QR-Based Public Verification',
-    text: 'Every approved document generates QR code—anyone can verify without authentication.',
-    icon: '🔳',
-  },
+  // QR-based verification removed as feature is not supported
 ];
 
 const securityFeatures = [
@@ -142,13 +138,25 @@ function HomePage() {
                 to="/demo"
                 className="px-8 py-3 rounded-full text-base font-medium bg-gradient-to-r from-blue-500 to-emerald-400 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:scale-[1.02] transition-transform"
               >
-                Try the live demo
+                Demo
+              </Link>
+              <Link
+                to="/verify"
+                className="px-8 py-3 rounded-full text-base font-medium border border-white/20 bg-white/5 hover:bg-white/10 transition"
+              >
+                Verify
               </Link>
               <Link
                 to="/docs"
                 className="px-8 py-3 rounded-full text-base font-medium border border-white/20 bg-white/5 hover:bg-white/10 transition"
               >
-                See how it works
+                Docs
+              </Link>
+              <Link
+                to="/contact"
+                className="px-8 py-3 rounded-full text-base font-medium border border-white/20 bg-white/5 hover:bg-white/10 transition"
+              >
+                Contact
               </Link>
             </div>
             <div className="flex flex-wrap gap-6 text-sm text-slate-300/80">

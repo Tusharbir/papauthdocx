@@ -1,11 +1,13 @@
+
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import RegisterVerifyPanel from '../components/RegisterVerifyPanel';
+import { Link } from 'react-router-dom';
 
 const steps = [
-  { title: 'Upload & hash', detail: 'Use our drag-and-drop zone to compute structure, layout, and stamp hashes locally.' },
-  { title: 'Verifier queue', detail: 'Assign the upload to an RBAC role (admin/verifier/user) and watch the workflow timeline update.' },
-  { title: 'QR verification', detail: 'Generate dynamic QR codes, then scan them with your webcam to view tamper status.' },
+  { title: 'Upload & hash', detail: 'Use our drag-and-drop zone to compute text, image, signature, and stamp hashes locally in your browser.' },
+  { title: 'Assign & review', detail: 'Assign the upload to an admin or verifier. The workflow timeline updates as the document is reviewed and verified.' },
+  { title: 'Version chain', detail: 'Each document version is cryptographically linked, creating an immutable audit trail.' },
 ];
 
 const DemoPage = () => (
@@ -13,10 +15,9 @@ const DemoPage = () => (
     <Navbar />
     <main className="max-w-[1400px] mx-auto px-6 py-16 space-y-16">
       <section>
-        <p className="text-sm text-blue-300 uppercase tracking-[0.3em] mb-3">Live demo briefing</p>
-        <h1 className="text-4xl font-semibold mb-4">PapDocAuthX showcase</h1>
+        <h1 className="text-4xl font-semibold mb-4">PapDocAuthX Demo Flow</h1>
         <p className="text-slate-300/90 max-w-3xl">
-          Launch the dashboard, upload sample documents, and present tamper proofing to stakeholders. Every action writes to the audit store so you can narrate database behavior in real time.
+          Experience secure, privacy-first document authentication. Upload a document, assign it for verification, and view the cryptographic version chain. All actions are logged for auditability—no document ever leaves your device.
         </p>
       </section>
       <section className="grid gap-8 md:grid-cols-3">
@@ -29,10 +30,10 @@ const DemoPage = () => (
       </section>
 
       <section className="max-w-2xl mx-auto text-center">
-        <p className="text-sm text-slate-400 mb-4">Ready to try a real flow?</p>
+        <p className="text-sm text-slate-400 mb-4">Ready to try the public flow?</p>
         <div className="flex items-center justify-center gap-4">
-          <a href="/login" className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold">Open dashboard (login)</a>
-          <a href="/verify" className="px-6 py-3 rounded-full border border-white/10 text-sm">Try verification</a>
+          <Link to="/login" className="px-6 py-3 rounded-full bg-gradient-to-r from-blue-500 to-emerald-400 text-sm font-semibold">Open dashboard (login)</Link>
+          <Link to="/verify" className="px-6 py-3 rounded-full border border-white/10 text-sm">Verify a document (public)</Link>
         </div>
       </section>
     </main>

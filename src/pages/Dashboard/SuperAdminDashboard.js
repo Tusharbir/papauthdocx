@@ -6,6 +6,7 @@ import { organizationApi } from '../../api/organizationApi';
 import { documentApi } from '../../api/documentApi';
 import analyticsApi from '../../api/analyticsApi';
 import axiosInstance from '../../api/axiosInstance';
+import authApi from '../../api/authApi';
 import Card from '../../components/ui/Card';
 import PageHeader from '../../components/ui/PageHeader';
 import Badge from '../../components/ui/Badge';
@@ -35,17 +36,11 @@ const SuperAdminDashboard = () => {
     queryFn: analyticsApi.getSummary
   });
 
-  // Fetch all users to get accurate admin count
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['all-users'],
-    queryFn: async () => {
-      const { data } = await axiosInstance.get('/api/auth/users');
-      return data.users || [];
-    }
+  // Fetch global admin count using new API
+  const { data: adminCount = 0, isLoading: adminCountLoading } = useQuery({
+    queryKey: ['admin-count'],
+    queryFn: authApi.getAdminCount
   });
-
-  // Calculate real stats
-  const adminCount = usersData?.filter(u => u.role === 'admin').length || 0;
   const totalDocuments = analyticsData?.totalDocuments || docs.length;
   
   // Transform throughput data for activity chart (last 7 days)
@@ -65,10 +60,12 @@ const SuperAdminDashboard = () => {
           <Card key={stat.label} className="p-6">
             <p className={`text-sm uppercase tracking-[0.4em] ${isDark ? 'text-blue-300' : 'text-blue-600/70'}`}>{stat.label}</p>
             <p className="mt-2 text-4xl font-semibold">
-              {(stat.label === 'Admins' && usersLoading) || (stat.label === 'Documents' && analyticsLoading) ? (
+              {stat.label === 'Admins' && adminCountLoading
+                ? <span className={subtleText}>...</span>
+                : <span className={strongText}>{stat.value ?? 0}</span>
+              }
+              {stat.label === 'Documents' && analyticsLoading && (
                 <span className={subtleText}>...</span>
-              ) : (
-                <span className={strongText}>{stat.value}</span>
               )}
             </p>
           </Card>
@@ -189,7 +186,7 @@ const SuperAdminDashboard = () => {
                   <td className={`py-3 font-semibold ${strongText}`}>{org.name}</td>
                   <td className={`py-3 ${subtleText}`}>{org.type}</td>
                   <td className={`py-3 ${subtleText}`}>{org.slug}</td>
-                  <td className={`py-3 text-right ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{org.adminCount || 2}</td>
+                  <td className={`py-3 text-right ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{typeof org.adminCount === 'number' ? org.adminCount : 0}</td>
                 </tr>
               ))}
             </tbody>
