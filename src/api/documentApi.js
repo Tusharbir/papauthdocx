@@ -1,10 +1,13 @@
 import axiosInstance from './axiosInstance';
 
 export const documentApi = {
-  // Get all documents (org-filtered)
-  getAll: async () => {
-    const { data } = await axiosInstance.get('/api/documents');
-    return data.documents;
+  // Get all documents (org-filtered, paginated)
+  getAll: async ({ page = 1, limit = 10, search = '', type = '' } = {}) => {
+    const params = { page, limit };
+    if (search) params.search = search;
+    if (type && type !== 'all') params.type = type;
+    const { data } = await axiosInstance.get('/api/documents', { params });
+    return { documents: data.documents, total: data.total };
   },
 
   // Alias for getAll - used by SuperAdminDashboard

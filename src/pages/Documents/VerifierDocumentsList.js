@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import useAuthStore from '../../store/authStore';
 import { useQuery } from '@tanstack/react-query';
+import Pagination from '../../components/ui/Pagination';
 import { useNavigate } from 'react-router-dom';
 import PageHeader from '../../components/ui/PageHeader';
 import Card from '../../components/ui/Card';
@@ -15,8 +16,11 @@ const VerifierDocumentsList = () => {
   const mode = useUIStore((state) => state.mode);
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(10);
 
   useEffect(() => {
     setBreadcrumbs(['PapDocAuthX', 'Documents']);
@@ -26,25 +30,34 @@ const VerifierDocumentsList = () => {
     ? 'border-white/10 bg-white/5 text-white'
     : 'border-slate-300 bg-white text-slate-900';
 
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['documents'],
-    queryFn: documentApi.getAll,
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  const {
+    data: pagedData = { documents: [], total: 0 },
+    isLoading
+  } = useQuery({
+    queryKey: ['documents', { page, limit: pageSize, search: debouncedSearch, type: typeFilter }],
+    queryFn: () => documentApi.getAll({ page, limit: pageSize, search: debouncedSearch, type: typeFilter }),
+    keepPreviousData: true
   });
+  const documents = pagedData.documents || [];
+  const total = pagedData.total || 0;
 
   // Get logged-in user ID
   const user = useAuthStore((state) => state.user);
   const userId = user?.id || user?.userId;
 
-  // Only show documents created by the logged-in user
+  // Backend handles search/type; filter status and user locally
   const filtered = documents.filter((doc) => {
-    const matchesSearch = search === '' || 
-      doc.docId?.toLowerCase().includes(search.toLowerCase()) ||
-      doc.type?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || doc.latestVersionStatus === statusFilter;
-    const matchesType = typeFilter === 'all' || doc.type === typeFilter;
-    // Only show if createdBy matches userId (from latestVersionHash info)
     const matchesUser = !userId || doc.createdBy === userId || doc.createdByUserId === userId;
-    return matchesSearch && matchesStatus && matchesType && matchesUser;
+    return matchesStatus && matchesUser;
   });
 
   const getStatusBadge = (status) => {
@@ -70,7 +83,7 @@ const VerifierDocumentsList = () => {
           className={`w-full max-w-sm rounded-full border px-4 py-2 text-sm ${inputClass}`}
           placeholder="Search by ID or type"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
         />
         <select
           className={`rounded-full border px-4 py-2 text-sm ${inputClass}`}
@@ -86,7 +99,7 @@ const VerifierDocumentsList = () => {
           <select
             className={`rounded-full border px-4 py-2 text-sm ${inputClass}`}
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
           >
             <option value="all">All types</option>
             {documentTypes.map(type => (
@@ -104,48 +117,58 @@ const VerifierDocumentsList = () => {
           description="No documents match your filters."
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((doc) => (
-            <Card key={doc.docId} className="p-6 hover:border-blue-500/30 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/user/documents/${doc.docId}`)}>
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <p
-                    className="text-lg font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap"
-                    style={{ maxWidth: '16rem', minWidth: '6rem', width: '100%' }}
-                    title={doc.docId}
-                  >
-                    {doc.docId}
-                  </p>
-                  <p
-                    className="text-sm text-slate-400 capitalize overflow-hidden text-ellipsis whitespace-nowrap"
-                    style={{ maxWidth: '12rem', width: '100%' }}
-                    title={doc.type}
-                  >
-                    {doc.type || 'Document'}
-                  </p>
-                </div>
-                {getStatusBadge(doc.latestVersionStatus)}
-              </div>
-              
-              <div className="space-y-2 text-xs text-slate-400">
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Version:</span>
-                  <span className="text-white">v{doc.currentVersion || 1}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Created:</span>
-                  <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
-                </div>
-                {doc.updatedAt && (
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Updated:</span>
-                    <span>{new Date(doc.updatedAt).toLocaleDateString()}</span>
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((doc) => (
+              <Card key={doc.docId} className="p-6 hover:border-blue-500/30 transition-colors cursor-pointer" onClick={() => navigate(`/dashboard/user/documents/${doc.docId}`)}>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <p
+                      className="text-lg font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap"
+                      style={{ maxWidth: '16rem', minWidth: '6rem', width: '100%' }}
+                      title={doc.docId}
+                    >
+                      {doc.docId}
+                    </p>
+                    <p
+                      className="text-sm text-slate-400 capitalize overflow-hidden text-ellipsis whitespace-nowrap"
+                      style={{ maxWidth: '12rem', width: '100%' }}
+                      title={doc.type}
+                    >
+                      {doc.type || 'Document'}
+                    </p>
                   </div>
-                )}
-              </div>
-            </Card>
-          ))}
-        </div>
+                  {getStatusBadge(doc.latestVersionStatus)}
+                </div>
+                <div className="space-y-2 text-xs text-slate-400">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Version:</span>
+                    <span className="text-white">v{doc.currentVersion || 1}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Created:</span>
+                    <span>{new Date(doc.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  {doc.updatedAt && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Updated:</span>
+                      <span>{new Date(doc.updatedAt).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
+          <div className="mt-6 text-sm text-slate-400">
+            Showing {filtered.length} of {total} documents
+          </div>
+        </>
       )}
       
       <div className="mt-6 p-4 rounded-2xl border border-blue-500/20 bg-blue-500/5">

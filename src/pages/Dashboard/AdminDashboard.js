@@ -18,10 +18,11 @@ const AdminDashboard = () => {
     setBreadcrumbs(['PapDocAuthX', 'Admin Dashboard']);
   }, [setBreadcrumbs]);
 
-  const { data: documents = [], error } = useQuery({
+  const { data: pagedDocs = { documents: [] }, error } = useQuery({
     queryKey: ['documents'],
-    queryFn: documentApi.getAll,
+    queryFn: () => documentApi.getAll({ limit: 10 }),
   });
+  const documents = pagedDocs.documents || [];
 
   const { data: analytics } = useQuery({
     queryKey: ['analytics-summary'],
@@ -111,7 +112,7 @@ const AdminDashboard = () => {
                 <div key={doc.docId} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                   <div className="flex-1">
                     <p className="font-semibold text-white overflow-hidden text-ellipsis whitespace-nowrap max-w-[180px]" title={doc.docId}>{doc.docId}</p>
-                    <p className="text-xs text-slate-400">{doc.type || 'Document'}  v{doc.currentVersion || 1}</p>
+                    <p className="text-xs text-slate-400">{doc.type || 'Document'} ￂ v{doc.currentVersion || 1}</p>
                   </div>
                   <Badge tone={STATUS_BADGE_TONES[doc.latestVersionStatus] || 'warning'}>
                     {doc.latestVersionStatus || WORKFLOW_STATUS.PENDING}
@@ -132,7 +133,7 @@ const AdminDashboard = () => {
                   <div>
                     <p className="text-white font-medium overflow-hidden text-ellipsis whitespace-nowrap max-w-[180px]" title={doc.docId}>{doc.docId}</p>
                     <p className="text-xs text-slate-500">
-                      {doc.latestVersionStatus === WORKFLOW_STATUS.APPROVED ? 'Approved' : doc.latestVersionStatus === WORKFLOW_STATUS.REVOKED ? 'Revoked' : 'Uploaded'}  {doc.type || 'Document'}
+                      {doc.latestVersionStatus === WORKFLOW_STATUS.APPROVED ? 'Approved' : doc.latestVersionStatus === WORKFLOW_STATUS.REVOKED ? 'Revoked' : 'Uploaded'} ￂ {doc.type || 'Document'}
                     </p>
                   </div>
                   <span className="text-xs text-slate-500">
