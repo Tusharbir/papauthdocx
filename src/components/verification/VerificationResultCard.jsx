@@ -65,11 +65,15 @@ const VerificationResultCard = ({ result }) => {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <p className="text-slate-500">Document ID</p>
-              <p className="font-mono text-white">{result.document.docId}</p>
+              <p className="font-mono text-white break-all leading-relaxed text-[11px] sm:text-xs md:text-sm">
+                {result.document.docId}
+              </p>
             </div>
             <div>
               <p className="text-slate-500">Organization</p>
-              <p className="text-white">{result.document.organization || 'N/A'}</p>
+              <p className="text-white break-words leading-relaxed text-[11px] sm:text-xs md:text-sm">
+                {result.document.organization || 'N/A'}
+              </p>
             </div>
             <div>
               <p className="text-slate-500">Type</p>
