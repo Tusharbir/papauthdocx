@@ -162,7 +162,7 @@ function HomePage() {
             <div className="flex flex-wrap gap-6 text-sm text-slate-300/80">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                Client-side hash extraction (PDF.js + Tesseract.js)
+                Client-side hash extraction
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-blue-400" />
@@ -353,7 +353,7 @@ function HomePage() {
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold mb-2">Ready to see it in action?</h2>
               <p className="text-[13px] md:text-sm text-slate-100/90 max-w-2xl">
-                Head over to the live demo page to walk through the full registration and verification workflow. Perfect for showing your Advanced Database Topics project or pitching the concept to a real institution.
+                Head over to the live demo page to walk through the full registration and verification workflow.
               </p>
             </div>
             <div className="flex gap-3">

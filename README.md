@@ -38,7 +38,7 @@ REACT_APP_API_BASE_URL=http://localhost:4000
 - Demo workflow: upload, verify, and view document version chain
 - Admin/Org onboarding: create organizations, admins, and issue documents
 - Document verification: cryptographic version chain, hash checks
-- No QR code, tamper score, Merkle proof, or anomaly signal features (these have been removed)
+- No QR code, Merkle proof, or anomaly signal features (these have been removed)
 
 ## Useful Scripts
 - `npm start` — start development server
@@ -51,7 +51,7 @@ REACT_APP_API_BASE_URL=http://localhost:4000
 - If CORS or proxy issues appear, set `REACT_APP_API_BASE_URL` to the backend URL
 
 ## Developer Notes
-- All deprecated features (QR code, tamper score, Merkle proof, anomaly signals) have been removed from the UI and codebase
+- All deprecated features (QR code, Merkle proof, anomaly signals) have been removed from the UI and codebase
 - For API examples and Postman collections, see the backend repo
 
 ---

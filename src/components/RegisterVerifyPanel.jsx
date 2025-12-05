@@ -9,11 +9,6 @@ const steps = [
     accent: 'from-blue-500/30 via-emerald-400/20 to-violet-500/30',
   },
   {
-    title: 'AI tamper score',
-    text: 'Compare with previous versions, view Merkle proofs, and monitor anomaly signals instantly.',
-    accent: 'from-emerald-500/30 via-cyan-400/20 to-amber-400/20',
-  },
-  {
     title: 'Verifier approval',
     text: 'Route to RBAC-based reviewers. Each action is logged with JWT identity and timestamp.',
     accent: 'from-violet-500/30 via-blue-400/20 to-pink-400/20',
@@ -34,7 +29,7 @@ const RegisterVerifyPanel = () => {
       <div>
         <p className="uppercase text-[12px] tracking-[0.25em] text-emerald-300 mb-4">Register → Verify</p>
         <h2 className="text-3xl lg:text-4xl font-semibold mb-4 text-white">
-          Guided workflow built for Advanced Database Topics demos
+          Guided workflow built for demos
         </h2>
         <p className="text-slate-300/90 text-base lg:text-lg max-w-2xl mb-8">
           Run uploads, hash comparisons, revocations, and QR scans without leaving your classroom demo.
